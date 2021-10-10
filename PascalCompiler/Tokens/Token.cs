@@ -28,9 +28,9 @@ namespace PascalCompiler
 
     public class OperationToken : Token
     {
-        public string Operation { get; }
+        public Operation Operation { get; }
 
-        public OperationToken(string operation)
+        public OperationToken(Operation operation)
         {
             Operation = operation;
             Type = TokenType.Operation;
@@ -43,15 +43,21 @@ namespace PascalCompiler
     {
         public Variant Variant { get; }
 
+        public ConstantToken(int constant)
+        {
+            Variant = new IntegerVariant(constant);
+            Type = TokenType.Constant;
+        }
+
+        public ConstantToken(float constant)
+        {
+            Variant = new FloatVariant(constant);
+            Type = TokenType.Constant;
+        }
+
         public ConstantToken(string constant)
         {
-            if (int.TryParse(constant, out int intValue))
-                Variant = new IntegerVariant(intValue);
-            else if (float.TryParse(constant, out float floatValue))
-                Variant = new FloatVariant(floatValue);
-            else
-                Variant = new StringVariant(constant);
-
+            Variant = new StringVariant(constant);
             Type = TokenType.Constant;
         }
 

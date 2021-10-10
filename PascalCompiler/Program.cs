@@ -4,9 +4,20 @@ namespace PascalCompiler
 {
     class Program
     {
-        static void Main(string[] args)
+        static void Main()
         {
-            Console.WriteLine("Hello World!");
+            IOModule io = new(@"/Users/kirpro/Desktop/temp");
+            LexicalAnalyzer lexer = new(io);
+
+            while (true)
+            {
+                Token token = lexer.GetNextToken();
+
+                if (token == null)
+                    break;
+
+                Console.WriteLine(token);
+            }
         }
     }
 }

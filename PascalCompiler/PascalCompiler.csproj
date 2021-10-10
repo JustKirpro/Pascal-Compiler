@@ -5,4 +5,13 @@
     <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Remove="..\.editorconfig" />
+    <None Remove="Tokens\" />
+    <None Remove="Lexical Analyzer\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Tokens\" />
+    <Folder Include="Lexical Analyzer\" />
+  </ItemGroup>
 </Project>
