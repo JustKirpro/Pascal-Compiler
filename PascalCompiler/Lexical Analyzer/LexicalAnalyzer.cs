@@ -1,79 +1,15 @@
-﻿using System.Collections.Generic;
-using System.Text;
+﻿using System.Text;
 
 namespace PascalCompiler
 {
     public class LexicalAnalyzer
     {
-        private static readonly Dictionary<string, Operation> dictionary = new()
-        {
-            { "IF", Operation.If },
-            { "DO", Operation.Do },
-            { "OF", Operation.Of },
-            { "OR", Operation.Or },
-            { "IN", Operation.In },
-            { "TO", Operation.To },
-            { "END", Operation.End },
-            { "VAR", Operation.Var },
-            { "DIV", Operation.Div },
-            { "AND", Operation.And },
-            { "NOT", Operation.Not },
-            { "FOR", Operation.For },
-            { "MOD", Operation.Mod },
-            { "NIL", Operation.Nil },
-            { "SET", Operation.Set },
-            { "THEN", Operation.Then },
-            { "ELSE", Operation.Else },
-            { "CASE", Operation.Case },
-            { "FILE", Operation.File },
-            { "GOTO", Operation.Goto },
-            { "TYPE", Operation.Type },
-            { "WITH", Operation.With },
-            { "BEGIN", Operation.Begin },
-            { "WHILE", Operation.While },
-            { "ARRAY", Operation.Array },
-            { "CONST", Operation.Const },
-            { "LABEL", Operation.Label },
-            { "UNTIL", Operation.Until },
-            { "DOWNTO", Operation.Downto },
-            { "PACKED", Operation.Packed },
-            { "RECORD", Operation.Record },
-            { "REPEAT", Operation.Repeat },
-            { "PROGRAM", Operation.Program },
-            { "FUNCTION", Operation.Function },
-            { "PROCEDURE", Operation.Procedure },
-            { "<", Operation.Less },
-            { ">", Operation.Greater },
-            { "<=", Operation.LessOrEqual },
-            { ">=", Operation.GreaterOrEqual },
-            { ":=", Operation.Assignment },
-            { "+", Operation.Plus },
-            { "-", Operation.Minus },
-            { "*", Operation.Multiply },
-            { "/", Operation.Divide },
-            { "=", Operation.Equals },
-            { "<>", Operation.NotEqual },
-            { "(", Operation.LeftParenthesis },
-            { ")", Operation.RightParenthesis },
-            { "{", Operation.LeftBracket },
-            { "}", Operation.RightBracket },
-            { "[", Operation.LeftSquareBracket },
-            { "]", Operation.RightSquareBracket },
-            { ".", Operation.Point },
-            { "..", Operation.TwoPoints },
-            { ",", Operation.Comma },
-            { ":", Operation.Colon },
-            { ";", Operation.Semicolon },
-            { "(*", Operation.LeftComment },
-            { "*)", Operation.RightComment },
-            { "^", Operation.Circumflex }
-        };
         readonly IOModule io;
         char currentCharacter;
         
-        public LexicalAnalyzer(IOModule io)
+        public LexicalAnalyzer(string inputPath, string outputPath)
         {
-            this.io = io;
+            io = new(inputPath, outputPath);
             currentCharacter = ' ';
         }
 
@@ -85,23 +21,35 @@ namespace PascalCompiler
             while (currentCharacter == ' ')
                 currentCharacter = io.ReadNextCharacter();
 
+            if (currentCharacter == '{')
+            {
+                while (currentCharacter != '}')
+                    currentCharacter = io.ReadNextCharacter();
+
+                currentCharacter = io.ReadNextCharacter();
+            }
+
+            while (currentCharacter == ' ')
+                currentCharacter = io.ReadNextCharacter();
+
             StringBuilder stringBuilder = new();
 
-            if (char.IsLetter(currentCharacter))
+            if (char.IsLetter(currentCharacter) || currentCharacter == '_')
             {
-                while (currentCharacter != ' ' && !IsOperation(currentCharacter.ToString()))
+                while (currentCharacter != ' ' && !OperationMatcher.IsOperation(currentCharacter.ToString()))
                 {
                     stringBuilder.Append(currentCharacter);
                     currentCharacter = io.ReadNextCharacter();
                 }
 
                 string token = stringBuilder.ToString();
-
-                return IsOperation(token) ? new OperationToken(GetOperation(token)) : new IdentifierToken(token);
+                CheckForbiddenSymbol(token);
+               
+                return OperationMatcher.IsOperation(token) ? new OperationToken(OperationMatcher.GetOperation(token)) : new IdentifierToken(token);
             }
             else if (char.IsDigit(currentCharacter))
             {
-                while (currentCharacter != ' ' && !IsOperation(currentCharacter.ToString()))
+                while (currentCharacter != ' ' && (!OperationMatcher.IsOperation(currentCharacter.ToString()) || currentCharacter == '.'))
                 {
                     stringBuilder.Append(currentCharacter);
                     currentCharacter = io.ReadNextCharacter();
@@ -109,7 +57,18 @@ namespace PascalCompiler
 
                 string token = stringBuilder.ToString();
 
-                return token.Contains('.') ? new ConstantToken(float.Parse(token)) : new ConstantToken(int.Parse(token));
+                if (token.Contains('.') || token.Contains('E') || token.Contains('e'))
+                {
+                    float value = float.Parse(token);
+                    return new ConstantToken(value);
+                }
+                else
+                {
+                    int value = int.Parse(token);
+                    CheckIntegerOverflow(value);
+
+                    return new ConstantToken(value);
+                }
             }
             else if (currentCharacter == '\'')
             {
@@ -122,36 +81,57 @@ namespace PascalCompiler
                 }
 
                 currentCharacter = io.ReadNextCharacter();
-
                 string token = stringBuilder.ToString();
+                CheckCharacter(token);
 
-                return new ConstantToken(token);
+                return new ConstantToken(token[0]);
             }
             else
             {
-                if (currentCharacter == '<' || currentCharacter == '>' || currentCharacter == ':' || currentCharacter == '(' || currentCharacter == '*' || currentCharacter == '.')
-                {
-                    stringBuilder.Append(currentCharacter);
-                    char nextCharacter = io.CheckNextCharacter();
-                    stringBuilder.Append(nextCharacter);
+                char previousCharacter = currentCharacter;
+                currentCharacter = io.ReadNextCharacter();
 
-                    if (IsOperation(stringBuilder.ToString()))
+                if (previousCharacter == '<' || previousCharacter == '>' || previousCharacter == ':' || previousCharacter == '(' || previousCharacter == '*' || previousCharacter == '.')
+                {
+                    string token = (previousCharacter + currentCharacter).ToString();
+
+                    if (OperationMatcher.IsOperation(token))
                     {
-                        io.ReadNextCharacter();
                         currentCharacter = io.ReadNextCharacter();
-                        return new OperationToken(GetOperation(stringBuilder.ToString()));
+                        return new OperationToken(OperationMatcher.GetOperation(token));
                     }
                 }
 
-                string token = currentCharacter.ToString();
-                currentCharacter = io.ReadNextCharacter();
-
-                return new OperationToken(GetOperation(token));
+                return new OperationToken(OperationMatcher.GetOperation(previousCharacter.ToString()));
             }
         }
 
-        private static bool IsOperation(string token) => dictionary.ContainsKey(token.ToUpper());
+        private void CheckForbiddenSymbol(string token)
+        {
+            if (token.IndexOf('!') != -1)
+                io.Errors.Add("Ошибка. В строке запрещёный символ '!'");
+            else if (token.IndexOf('@') != -1)
+                io.Errors.Add("Ошибка. В строке запрещёный символ '@'");
+            else if (token.IndexOf('#') != -1)
+                io.Errors.Add("Ошибка. В строке запрещёный символ '#'");
+            else if (token.IndexOf('$') != -1)
+                io.Errors.Add("Ошибка. В строке запрещёный символ '$'");
+            else if (token.IndexOf('%') != -1)
+                io.Errors.Add("Ошибка. В строке запрещёный символ '%'");
+            else if (token.IndexOf('&') != -1)
+                io.Errors.Add("Ошибка. В строке запрещёный символ '&'");
+        }
 
-        private static Operation GetOperation(string token) => dictionary[token.ToUpper()];
+        private void CheckIntegerOverflow(int value)
+        {
+            if (value > 32768)
+                io.Errors.Add("Ошибка. Значение целочисленной константы превышает предел");
+        }
+
+        private void CheckCharacter(string token)
+        {
+            if (token.Length != 1)
+                io.Errors.Add("Ошибка. Символьная константа должна состоять из 1 символа");
+        }
     }
 }

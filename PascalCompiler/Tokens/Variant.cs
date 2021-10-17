@@ -5,7 +5,7 @@ namespace PascalCompiler
     {
         Integer,
         Float,
-        String
+        Character
     }
 
     public abstract class Variant
@@ -41,12 +41,12 @@ namespace PascalCompiler
 
     public class StringVariant : Variant
     {
-        public string Value { get; }
+        public char Value { get; }
 
-        public StringVariant(string value)
+        public StringVariant(char value)
         {
             Value = value;
-            Type = VariantType.String;
+            Type = VariantType.Character;
         }
 
         public override string ToString() => $"{Type} | {Value}";

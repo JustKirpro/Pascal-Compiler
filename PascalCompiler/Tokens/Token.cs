@@ -55,7 +55,7 @@ namespace PascalCompiler
             Type = TokenType.Constant;
         }
 
-        public ConstantToken(string constant)
+        public ConstantToken(char constant)
         {
             Variant = new StringVariant(constant);
             Type = TokenType.Constant;

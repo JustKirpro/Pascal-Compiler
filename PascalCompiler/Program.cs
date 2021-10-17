@@ -6,12 +6,11 @@ namespace PascalCompiler
     {
         static void Main()
         {
-            IOModule io = new(@"/Users/kirpro/Desktop/temp");
-            LexicalAnalyzer lexer = new(io);
+            LexicalAnalyzer lexicalAnalyzer = new(@"/Users/kirpro/Desktop/input.pas", @"/Users/kirpro/Desktop/output.txt");
 
             while (true)
             {
-                Token token = lexer.GetNextToken();
+                Token token = lexicalAnalyzer.GetNextToken();
 
                 if (token == null)
                     break;
