@@ -4,8 +4,8 @@ namespace PascalCompiler
     public enum VariantType
     {
         Integer,
-        Float,
-        Character
+        Real,
+        String
     }
 
     public abstract class Variant
@@ -15,9 +15,9 @@ namespace PascalCompiler
 
     public class IntegerVariant : Variant
     {
-        public int Value { get; }
+        public long Value { get; }
 
-        public IntegerVariant(int value)
+        public IntegerVariant(long value)
         {
             Value = value;
             Type = VariantType.Integer;
@@ -28,12 +28,12 @@ namespace PascalCompiler
 
     public class FloatVariant : Variant
     {
-        public float Value { get; }
+        public double Value { get; }
 
-        public FloatVariant(float value)
+        public FloatVariant(double value)
         {
             Value = value;
-            Type = VariantType.Float;
+            Type = VariantType.Real;
         }
 
         public override string ToString() => $"{Type} | {Value}";
@@ -41,12 +41,12 @@ namespace PascalCompiler
 
     public class StringVariant : Variant
     {
-        public char Value { get; }
+        public string Value { get; }
 
-        public StringVariant(char value)
+        public StringVariant(string value)
         {
             Value = value;
-            Type = VariantType.Character;
+            Type = VariantType.String;
         }
 
         public override string ToString() => $"{Type} | {Value}";

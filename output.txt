@@ -1,12 +1,18 @@
-program Hello; {this is a single line comment. !@&}
+program Hello; {first comment!} {second comment?}
 var
-   _var: integer;
-   a : char#;
-Ошибка. В строке запрещёный символ '#'
-   b : real;
+    a : integer?;
+Ошибка. В строке запрещёный символ '?'
+    b,    c :real;
 begin
-    a:= '4g' + 40000;
-Ошибка. Символьная константа должна состоять из 1 символа
-Ошибка. Значение целочисленной константы превышает предел
-    b := 43.56;
+    b:=4.5;
+    a := b * (4 + a);
+    c := b * (32 + a * (b + 3));
+    if a + 5 > 0 then
+        b := 32.4
+    else
+        c:= 45.3;
+
+    while a > 0 do
+        a := a - 1
 end.
+Всего ошибок - 1

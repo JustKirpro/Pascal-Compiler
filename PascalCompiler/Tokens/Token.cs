@@ -43,19 +43,19 @@ namespace PascalCompiler
     {
         public Variant Variant { get; }
 
-        public ConstantToken(int constant)
+        public ConstantToken(long constant)
         {
             Variant = new IntegerVariant(constant);
             Type = TokenType.Constant;
         }
 
-        public ConstantToken(float constant)
+        public ConstantToken(double constant)
         {
             Variant = new FloatVariant(constant);
             Type = TokenType.Constant;
         }
 
-        public ConstantToken(char constant)
+        public ConstantToken(string constant)
         {
             Variant = new StringVariant(constant);
             Type = TokenType.Constant;

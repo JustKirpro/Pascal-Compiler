@@ -9,9 +9,11 @@
     <None Remove="..\.editorconfig" />
     <None Remove="Tokens\" />
     <None Remove="Lexical Analyzer\" />
+    <None Remove="Syntax Analyzer\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Tokens\" />
     <Folder Include="Lexical Analyzer\" />
+    <Folder Include="Syntax Analyzer\" />
   </ItemGroup>
 </Project>

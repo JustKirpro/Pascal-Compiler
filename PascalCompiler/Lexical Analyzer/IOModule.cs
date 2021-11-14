@@ -5,17 +5,17 @@ namespace PascalCompiler
 {
     public class IOModule
     {
-        readonly string[] lines;
-        public List<string> Errors { get; }
-        readonly string outputPath;
-        int rowNumber;
-        int characterNumber;
+        public List<string> Errors { get; } = new();
+        private int totalErros = 0;
+        private readonly string[] lines;
+        private readonly string outputPath;
+        private int rowNumber;
+        private int characterNumber;
 
         public IOModule(string inputPath, string outputPath)
         {
-            lines = File.ReadAllLines(inputPath);
-            Errors = new List<string>();
             this.outputPath = outputPath;
+            lines = File.ReadAllLines(inputPath);
             File.WriteAllText(outputPath, string.Empty);
         }
 
@@ -45,8 +45,12 @@ namespace PascalCompiler
                     foreach (string error in Errors)
                         writer.WriteLine(error);
 
+                    totalErros += Errors.Count;
                     Errors.Clear();
                 }
+
+                if (rowNumber == lines.Length - 1)
+                    writer.WriteLine($"Всего ошибок - {totalErros}");
             }
         }
     }

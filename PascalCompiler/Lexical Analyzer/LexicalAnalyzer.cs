@@ -4,33 +4,33 @@ namespace PascalCompiler
 {
     public class LexicalAnalyzer
     {
-        readonly IOModule io;
-        char currentCharacter;
+        public IOModule Io { get; private set; }
+        private char currentCharacter;
         
         public LexicalAnalyzer(string inputPath, string outputPath)
         {
-            io = new(inputPath, outputPath);
+            Io = new(inputPath, outputPath);
             currentCharacter = ' ';
         }
 
         public Token GetNextToken()
         {
-            if (!io.HasUnreadCharacter())
+            if (!Io.HasUnreadCharacter())
                 return null;
 
-            while (currentCharacter == ' ')
-                currentCharacter = io.ReadNextCharacter();
-
-            if (currentCharacter == '{')
+            while (currentCharacter == ' ' || currentCharacter == '{')
             {
-                while (currentCharacter != '}')
-                    currentCharacter = io.ReadNextCharacter();
+                currentCharacter = Io.ReadNextCharacter();
+                if (!Io.HasUnreadCharacter())
+                    return null;
 
-                currentCharacter = io.ReadNextCharacter();
+                if (currentCharacter == '{')
+                {
+                    while (currentCharacter != '}')
+                        currentCharacter = Io.ReadNextCharacter();
+                    currentCharacter = Io.ReadNextCharacter();
+                }
             }
-
-            while (currentCharacter == ' ')
-                currentCharacter = io.ReadNextCharacter();
 
             StringBuilder stringBuilder = new();
 
@@ -38,100 +38,83 @@ namespace PascalCompiler
             {
                 while (currentCharacter != ' ' && !OperationMatcher.IsOperation(currentCharacter.ToString()))
                 {
+                    CheckForbiddenSymbol();
                     stringBuilder.Append(currentCharacter);
-                    currentCharacter = io.ReadNextCharacter();
+                    currentCharacter = Io.ReadNextCharacter();
                 }
 
-                string token = stringBuilder.ToString();
-                CheckForbiddenSymbol(token);
-               
+                string token = stringBuilder.ToString();             
                 return OperationMatcher.IsOperation(token) ? new OperationToken(OperationMatcher.GetOperation(token)) : new IdentifierToken(token);
             }
             else if (char.IsDigit(currentCharacter))
             {
                 while (currentCharacter != ' ' && (!OperationMatcher.IsOperation(currentCharacter.ToString()) || currentCharacter == '.'))
                 {
+                    CheckForbiddenSymbol();
                     stringBuilder.Append(currentCharacter);
-                    currentCharacter = io.ReadNextCharacter();
+                    currentCharacter = Io.ReadNextCharacter();
                 }
 
                 string token = stringBuilder.ToString();
 
-                if (token.Contains('.') || token.Contains('E') || token.Contains('e'))
+                if (token.Contains('.'))
                 {
-                    float value = float.Parse(token);
+                    double value = double.Parse(token);
                     return new ConstantToken(value);
                 }
                 else
                 {
-                    int value = int.Parse(token);
-                    CheckIntegerOverflow(value);
+                    long value = long.Parse(token);
+
+                    if (value > int.MaxValue)
+                        Io.Errors.Add("Ошибка. Значение целочисленной константы превышает предел");
 
                     return new ConstantToken(value);
                 }
             }
             else if (currentCharacter == '\'')
             {
-                currentCharacter = io.ReadNextCharacter();
+                currentCharacter = Io.ReadNextCharacter();
 
                 while (currentCharacter != '\'')
                 {
                     stringBuilder.Append(currentCharacter);
-                    currentCharacter = io.ReadNextCharacter();
+                    currentCharacter = Io.ReadNextCharacter();
                 }
 
-                currentCharacter = io.ReadNextCharacter();
-                string token = stringBuilder.ToString();
-                CheckCharacter(token);
-
-                return new ConstantToken(token[0]);
+                currentCharacter = Io.ReadNextCharacter();
+                return new ConstantToken(stringBuilder.ToString());
             }
             else
             {
                 char previousCharacter = currentCharacter;
-                currentCharacter = io.ReadNextCharacter();
+                currentCharacter = Io.ReadNextCharacter();
+                CheckForbiddenSymbol();
 
                 if (previousCharacter == '<' || previousCharacter == '>' || previousCharacter == ':' || previousCharacter == '(' || previousCharacter == '*' || previousCharacter == '.')
                 {
-                    string token = (previousCharacter + currentCharacter).ToString();
+                    stringBuilder.Append(previousCharacter);
+                    stringBuilder.Append(currentCharacter);
+                    string token = stringBuilder.ToString();
 
                     if (OperationMatcher.IsOperation(token))
                     {
-                        currentCharacter = io.ReadNextCharacter();
+                        currentCharacter = Io.ReadNextCharacter();
                         return new OperationToken(OperationMatcher.GetOperation(token));
                     }
                 }
 
-                return new OperationToken(OperationMatcher.GetOperation(previousCharacter.ToString()));
+                if (OperationMatcher.IsOperation(previousCharacter.ToString()))
+                    return new OperationToken(OperationMatcher.GetOperation(previousCharacter.ToString()));
+                else
+                    return null;
             }
         }
 
-        private void CheckForbiddenSymbol(string token)
+        private void CheckForbiddenSymbol()
         {
-            if (token.IndexOf('!') != -1)
-                io.Errors.Add("Ошибка. В строке запрещёный символ '!'");
-            else if (token.IndexOf('@') != -1)
-                io.Errors.Add("Ошибка. В строке запрещёный символ '@'");
-            else if (token.IndexOf('#') != -1)
-                io.Errors.Add("Ошибка. В строке запрещёный символ '#'");
-            else if (token.IndexOf('$') != -1)
-                io.Errors.Add("Ошибка. В строке запрещёный символ '$'");
-            else if (token.IndexOf('%') != -1)
-                io.Errors.Add("Ошибка. В строке запрещёный символ '%'");
-            else if (token.IndexOf('&') != -1)
-                io.Errors.Add("Ошибка. В строке запрещёный символ '&'");
-        }
-
-        private void CheckIntegerOverflow(int value)
-        {
-            if (value > 32768)
-                io.Errors.Add("Ошибка. Значение целочисленной константы превышает предел");
-        }
-
-        private void CheckCharacter(string token)
-        {
-            if (token.Length != 1)
-                io.Errors.Add("Ошибка. Символьная константа должна состоять из 1 символа");
+            if (currentCharacter == '!' || currentCharacter == '%' || currentCharacter == '?' || currentCharacter == '&')
+                Io.Errors.Add($"Ошибка. В строке запрещёный символ '{currentCharacter}'");
         }
     }
 }

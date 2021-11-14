@@ -1,9 +1,16 @@
-program Hello; {this is a single line comment. !@&}
+program Hello; {first comment!} {second comment?}
 var
-   _var: integer;
-   a : char#;
-   b : real;
+    a : integer?;
+    b,    c :real;
 begin
-    a:= '4g' + 40000;
-    b := 43.56;
+    b:=4.5;
+    a := b * (4 + a);
+    c := b * (32 + a * (b + 3));
+    if a + 5 > 0 then
+        b := 32.4
+    else
+        c:= 45.3;
+
+    while a > 0 do
+        a := a - 1
 end.
