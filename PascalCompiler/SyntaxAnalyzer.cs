@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 
+
 namespace PascalCompiler
 {
     public class SyntaxAnalyzer
@@ -18,9 +19,9 @@ namespace PascalCompiler
             currentToken = lexer.GetNextToken();
         }
 
-        private void AddError(string errorText)
+        private void AddError(int errorCode)
         {
-            lexer.Io.Errors.Add(errorText);
+            lexer.Io.Errors.Add(new Error(errorCode));
         }
 
         private void AcceptOperation(Operation operation)
@@ -28,7 +29,7 @@ namespace PascalCompiler
             if (currentToken != null && currentToken.Type == TokenType.Operation && (currentToken as OperationToken).Operation == operation)
                 GetNextToken();
             else
-                AddError($"Ошибка! Ожидался символ {operation}");
+                AddError(5);
         }
 
         private void AcceptIdentifier()
@@ -36,10 +37,10 @@ namespace PascalCompiler
             if (currentToken != null && currentToken.Type == TokenType.Identifier)
                 GetNextToken();
             else
-                AddError("Ошибка! Ожидалось имя");
+                AddError(12);
         }
 
-        public void StartAnylysis()
+        public void Start()
         {
             Program();
         }
@@ -134,7 +135,7 @@ namespace PascalCompiler
         {
             if (currentToken == null)
             {
-                AddError("Ошибка! Ожидался оператор");
+                AddError(54);
                 return;
             }
 
@@ -142,7 +143,7 @@ namespace PascalCompiler
             {
                 AssignmentOperator();
             }
-            else
+            else if (currentToken.Type == TokenType.Operation)
             {
                 Operation operation = (currentToken as OperationToken).Operation;
 
@@ -221,7 +222,7 @@ namespace PascalCompiler
         {
             if (currentToken == null)
             {
-                AddError("Ошибка! Ожидалось выражение");
+                AddError(13);
                 return;
             }
 

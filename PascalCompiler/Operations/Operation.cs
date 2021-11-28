@@ -2,23 +2,42 @@
 {
     public enum Operation
     {
-        If, 
-        Do, 
-        Or,
+        If,
+        Do,
+        Of,
+        Or, 
         In,
-        End,
+        To,
+        End, 
         Var,
         Div,
         And,
         Not,
+        For,
         Xor,
         Mod,
+        Nil,
+        Set,
         Then,
         Else,
+        Case,
+        File,
+        Goto,
         Type,
+        With,
         Begin,
         While,
+        Array,
+        Const,
+        Label,
+        Until,
+        Downto,
+        Packed,
+        Record,
+        Repeat,
         Program,
+        Function,
+        Procedure,
         Less, // <
         Greater, // >
         LessOrEqual, // <=
@@ -32,8 +51,8 @@
         NotEqual, // <>
         LeftParenthesis, // (
         RightParenthesis, // )
-        LeftBracket, // {
-        RightBracket, // }
+        LeftBrace, // {
+        RightBrace, // }
         LeftSquareBracket, // [
         RightSquareBracket, // ]
         Point, // .
@@ -41,8 +60,9 @@
         Comma, // ,
         Colon, // :
         Semicolon, // ;
-        Quote, // '
+        Quote, // ' 
         LeftComment, // (*
         RightComment, // *)
+        Circumflex // ^
     }
 }

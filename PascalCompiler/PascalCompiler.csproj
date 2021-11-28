@@ -11,6 +11,7 @@
     <None Remove="Lexical Analyzer\" />
     <None Remove="Syntax Analyzer\" />
     <None Remove="Error\" />
+    <None Remove="mono_crash.11a67480d0.0.json" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Tokens\" />
