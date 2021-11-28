@@ -10,10 +10,12 @@
     <None Remove="Tokens\" />
     <None Remove="Lexical Analyzer\" />
     <None Remove="Syntax Analyzer\" />
+    <None Remove="Error\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Tokens\" />
     <Folder Include="Lexical Analyzer\" />
     <Folder Include="Syntax Analyzer\" />
+    <Folder Include="Error\" />
   </ItemGroup>
 </Project>

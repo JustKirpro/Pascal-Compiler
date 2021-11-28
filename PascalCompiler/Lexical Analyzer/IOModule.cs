@@ -5,8 +5,8 @@ namespace PascalCompiler
 {
     public class IOModule
     {
-        public List<string> Errors { get; } = new();
-        private int totalErros = 0;
+        public List<Error> Errors { get; } = new List<Error>();
+        private int totalErrors;
         private readonly string[] lines;
         private readonly string outputPath;
         private int rowNumber;
@@ -19,39 +19,36 @@ namespace PascalCompiler
             File.WriteAllText(outputPath, string.Empty);
         }
 
-        public bool HasUnreadCharacter() => rowNumber != lines.Length;
-
         public char ReadNextCharacter()
         {
-            if (characterNumber == lines[rowNumber].Length)
-            {
-                WriteLine();
-                rowNumber++;
-                characterNumber = 0;
-                return ' ';
-            }
+            if (characterNumber != lines[rowNumber].Length)
+                return lines[rowNumber][characterNumber++];
 
-            return lines[rowNumber][characterNumber++];
+            WriteListingLine();
+            rowNumber++;
+            characterNumber = 0;
+            return rowNumber == lines.Length ? '\0' : '\n';
         }
 
-        private void WriteLine()
+        private void WriteListingLine()
         {
-            using (StreamWriter writer = File.AppendText(outputPath))
+            using StreamWriter writer = File.AppendText(outputPath);
+            writer.WriteLine(lines[rowNumber]);
+
+            if (Errors.Count > 0)
             {
-                writer.WriteLine(lines[rowNumber]);
-
-                if (Errors.Count != 0)
+                foreach (Error error in Errors)
                 {
-                    foreach (string error in Errors)
-                        writer.WriteLine(error);
-
-                    totalErros += Errors.Count;
-                    Errors.Clear();
+                    totalErrors++;
+                    writer.WriteLine($"*{totalErrors.ToString().PadLeft(3, '0')}* Код ошибки: {error.ErrorCode}");
+                    writer.WriteLine(ErrorMatcher.GetErrorDescription(error.ErrorCode));
                 }
 
-                if (rowNumber == lines.Length - 1)
-                    writer.WriteLine($"Всего ошибок - {totalErros}");
+                Errors.Clear();
             }
+
+            if (rowNumber == lines.Length - 1)
+                writer.WriteLine($"\nВсего ошибок - {totalErrors}");
         }
     }
 }

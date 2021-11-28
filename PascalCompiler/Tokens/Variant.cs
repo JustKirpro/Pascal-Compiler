@@ -15,9 +15,9 @@ namespace PascalCompiler
 
     public class IntegerVariant : Variant
     {
-        public long Value { get; }
+        public int Value { get; }
 
-        public IntegerVariant(long value)
+        public IntegerVariant(int value)
         {
             Value = value;
             Type = VariantType.Integer;
