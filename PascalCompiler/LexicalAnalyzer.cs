@@ -6,19 +6,19 @@ namespace PascalCompiler
     {
         private const int MaxIntValue = 32767;
         private const int MaxIdentifierLength = 127;
-        public IOModule Io { get; private set; }
+        private readonly IOModule IOModule;
         private char currentCharacter;
         
         public LexicalAnalyzer(string inputPath, string outputPath)
         {
-            Io = new(inputPath, outputPath);
+            IOModule = new(inputPath, outputPath);
             currentCharacter = ' ';
         }
       
         public Token GetNextToken()
         {
             while (currentCharacter == ' ' || currentCharacter == '\t')
-                currentCharacter = Io.ReadNextCharacter();
+                currentCharacter = IOModule.ReadNextCharacter();
 
             if (currentCharacter == '\0')
             {
@@ -26,7 +26,7 @@ namespace PascalCompiler
             }
             else if (currentCharacter == '\n')
             {
-                currentCharacter = Io.ReadNextCharacter();
+                currentCharacter = IOModule.ReadNextCharacter();
                 return GetNextToken();
             }
             else if (currentCharacter == '\'')
@@ -37,24 +37,25 @@ namespace PascalCompiler
             {
                 return ScanNumber();
             }
-            else if (char.IsLetter(currentCharacter))
+            else if (char.IsLetter(currentCharacter) || currentCharacter == '_')
             {
                 return ScanKeywordOrIdentifier();
             }
             else if (currentCharacter == ')' || currentCharacter == ';' || currentCharacter == '=' || currentCharacter == ',' || currentCharacter == '^'
-                                             || currentCharacter == ']' || currentCharacter == '+' || currentCharacter == '-' || currentCharacter == '/')
+                                             || currentCharacter == ']' || currentCharacter == '+' || currentCharacter == '-' || currentCharacter == '/'
+                                             || currentCharacter == '{' || currentCharacter == '}')
             {
                 return ScanSingleCharacterOperator();
             }
-            else if (currentCharacter == '(' || currentCharacter == '*' || currentCharacter == '{' || currentCharacter == '}' || currentCharacter == '<'
-                                             || currentCharacter == '>' || currentCharacter == ':' || currentCharacter == '.') 
+            else if (currentCharacter == '(' || currentCharacter == '*' || currentCharacter == '<' || currentCharacter == '>' || currentCharacter == ':'
+                                             || currentCharacter == '.') 
             {
                 return ScanMultipleCharacterOperator();
             }
             else
             {
                 AddError(7);
-                currentCharacter = Io.ReadNextCharacter();
+                currentCharacter = IOModule.ReadNextCharacter();
                 return GetNextToken();
             }
         }
@@ -62,12 +63,12 @@ namespace PascalCompiler
         private Token ScanString()
         {
             StringBuilder stringBuilder = new();
-            currentCharacter = Io.ReadNextCharacter();
+            currentCharacter = IOModule.ReadNextCharacter();
 
             while (currentCharacter != '\'' && currentCharacter != '\0')
             {
                 stringBuilder.Append(currentCharacter);
-                currentCharacter = Io.ReadNextCharacter();
+                currentCharacter = IOModule.ReadNextCharacter();
             }
 
             string token = stringBuilder.ToString();
@@ -76,7 +77,7 @@ namespace PascalCompiler
                 AddError(3);
 
             if (currentCharacter == '\'')
-                currentCharacter = Io.ReadNextCharacter();
+                currentCharacter = IOModule.ReadNextCharacter();
 
             return new ConstantToken(token);
         }
@@ -88,7 +89,7 @@ namespace PascalCompiler
             while (char.IsDigit(currentCharacter) || currentCharacter == '.')
             {
                 stringBuilder.Append(currentCharacter);
-                currentCharacter = Io.ReadNextCharacter();
+                currentCharacter = IOModule.ReadNextCharacter();
             }
 
             string token = stringBuilder.ToString();
@@ -126,7 +127,7 @@ namespace PascalCompiler
             while (char.IsLetter(currentCharacter) || char.IsDigit(currentCharacter) || currentCharacter == '_')
             {
                 stringBuilder.Append(currentCharacter);
-                currentCharacter = Io.ReadNextCharacter();
+                currentCharacter = IOModule.ReadNextCharacter();
             }
 
             string token = stringBuilder.ToString();
@@ -146,8 +147,13 @@ namespace PascalCompiler
 
         private Token ScanSingleCharacterOperator()
         {
+            if (currentCharacter == '{') 
+                return ScanLeftBrace();
+            else if (currentCharacter == '}')
+                return ScanRightBrace();
+
             char previousCharacter = currentCharacter;
-            currentCharacter = Io.ReadNextCharacter();
+            currentCharacter = IOModule.ReadNextCharacter();
             return new OperationToken(OperationMatcher.GetOperation(previousCharacter.ToString()));
         }
 
@@ -157,19 +163,15 @@ namespace PascalCompiler
                 return ScanLeftParenthesis();
             else if (currentCharacter == '*')
                 return ScanAsterisk();
-            else if (currentCharacter == '{')
-                return ScanLeftBrace();
-            else if (currentCharacter == '}')
-                return ScanRightBrace();
 
             char previousCharacter = currentCharacter;
-            currentCharacter = Io.ReadNextCharacter();
+            currentCharacter = IOModule.ReadNextCharacter();
 
             string token = previousCharacter.ToString() + currentCharacter;
 
             if (OperationMatcher.IsOperation(token))
             {
-                currentCharacter = Io.ReadNextCharacter();
+                currentCharacter = IOModule.ReadNextCharacter();
                 return new OperationToken(OperationMatcher.GetOperation(token));
             }
 
@@ -178,17 +180,17 @@ namespace PascalCompiler
 
         private Token ScanLeftParenthesis()
         {
-            currentCharacter = Io.ReadNextCharacter();
+            currentCharacter = IOModule.ReadNextCharacter();
 
             if (currentCharacter == '*')
             {
                 char previousCharacter = currentCharacter;
-                currentCharacter = Io.ReadNextCharacter();
+                currentCharacter = IOModule.ReadNextCharacter();
 
                 while (previousCharacter != '*' || currentCharacter != ')' && currentCharacter != '\0')
                 {
                     previousCharacter = currentCharacter;
-                    currentCharacter = Io.ReadNextCharacter();
+                    currentCharacter = IOModule.ReadNextCharacter();
                 }
 
                 if (previousCharacter == '*' && currentCharacter == ')')
@@ -209,11 +211,11 @@ namespace PascalCompiler
 
         private Token ScanAsterisk()
         {
-            currentCharacter = Io.ReadNextCharacter();
+            currentCharacter = IOModule.ReadNextCharacter();
 
             if (currentCharacter == ')')
             {
-                currentCharacter = Io.ReadNextCharacter();
+                currentCharacter = IOModule.ReadNextCharacter();
                 AddError(2);
                 return GetNextToken();
             }
@@ -225,14 +227,14 @@ namespace PascalCompiler
 
         private Token ScanLeftBrace()
         {
-            currentCharacter = Io.ReadNextCharacter();
+            currentCharacter = IOModule.ReadNextCharacter();
 
             while (currentCharacter != '}' && currentCharacter != '\0' && currentCharacter != '\n')
-                currentCharacter = Io.ReadNextCharacter();
+                currentCharacter = IOModule.ReadNextCharacter();
 
             if (currentCharacter == '}')
             {
-                currentCharacter = Io.ReadNextCharacter();
+                currentCharacter = IOModule.ReadNextCharacter();
                 return GetNextToken();
             }
 
@@ -250,14 +252,14 @@ namespace PascalCompiler
 
         private Token ScanRightBrace()
         {
-            currentCharacter = Io.ReadNextCharacter();
+            currentCharacter = IOModule.ReadNextCharacter();
             AddError(2);
             return GetNextToken();
         }
 
-        private void AddError(int errorCode)
+        public void AddError(int errorCode)
         {
-            Io.Errors.Add(new Error(errorCode));
+            IOModule.AddError(errorCode);
         }
     }
 }

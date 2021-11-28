@@ -5,12 +5,12 @@ namespace PascalCompiler
 {
     public class IOModule
     {
-        public List<Error> Errors { get; } = new List<Error>();
-        private int totalErrors;
         private readonly string[] lines;
         private readonly string outputPath;
         private int rowNumber;
         private int characterNumber;
+        private readonly List<Error> errors = new();
+        private int totalErrors;
 
         public IOModule(string inputPath, string outputPath)
         {
@@ -24,28 +24,32 @@ namespace PascalCompiler
             if (characterNumber != lines[rowNumber].Length)
                 return lines[rowNumber][characterNumber++];
 
-            WriteListingLine();
+            WriteLine();
             rowNumber++;
             characterNumber = 0;
             return rowNumber == lines.Length ? '\0' : '\n';
         }
 
-        private void WriteListingLine()
+        public void AddError(int errorCode)
+        {
+            errors.Add(new Error(errorCode));
+        }
+
+        private void WriteLine()
         {
             using StreamWriter writer = File.AppendText(outputPath);
             writer.WriteLine(lines[rowNumber]);
 
-            if (Errors.Count > 0)
+            if (errors.Count > 0)
             {
-                totalErrors += Errors.Count;
-
-                foreach (Error error in Errors)
+                foreach (Error error in errors)
                 {
+                    totalErrors++;
                     writer.WriteLine($"*{totalErrors.ToString().PadLeft(3, '0')}* Код ошибки: {error.ErrorCode}");
                     writer.WriteLine(ErrorMatcher.GetErrorDescription(error.ErrorCode));
                 }
 
-                Errors.Clear();
+                errors.Clear();
             }
 
             if (rowNumber == lines.Length - 1)

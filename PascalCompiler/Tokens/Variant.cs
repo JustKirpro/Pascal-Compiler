@@ -26,11 +26,11 @@ namespace PascalCompiler
         public override string ToString() => $"{Type} | {Value}";
     }
 
-    public class FloatVariant : Variant
+    public class RealVariant : Variant
     {
         public double Value { get; }
 
-        public FloatVariant(double value)
+        public RealVariant(double value)
         {
             Value = value;
             Type = VariantType.Real;

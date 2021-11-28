@@ -51,7 +51,7 @@ namespace PascalCompiler
 
         public ConstantToken(double constant)
         {
-            Variant = new FloatVariant(constant);
+            Variant = new RealVariant(constant);
             Type = TokenType.Constant;
         }
 

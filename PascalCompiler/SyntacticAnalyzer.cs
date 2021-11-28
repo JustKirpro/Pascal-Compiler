@@ -4,23 +4,23 @@ namespace PascalCompiler
 {
     public class SyntacticAnalyzer
     {
-        private readonly LexicalAnalyzer lexer;
+        private readonly LexicalAnalyzer lexicalAnalyzer;
         private Token currentToken;
 
         public SyntacticAnalyzer(string inputPath, string outputPath)
         {
-            lexer = new(inputPath, outputPath);
+            lexicalAnalyzer = new(inputPath, outputPath);
             GetNextToken();
         }
 
         private void GetNextToken()
         {
-            currentToken = lexer.GetNextToken();
+            currentToken = lexicalAnalyzer.GetNextToken();
         }
 
         private void AddError(int errorCode)
         {
-            lexer.Io.Errors.Add(new Error(errorCode));
+            lexicalAnalyzer.AddError(errorCode);
         }
 
         private void AcceptOperation(Operation operation)
