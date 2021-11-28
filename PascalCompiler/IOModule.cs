@@ -37,9 +37,10 @@ namespace PascalCompiler
 
             if (Errors.Count > 0)
             {
+                totalErrors += Errors.Count;
+
                 foreach (Error error in Errors)
                 {
-                    totalErrors++;
                     writer.WriteLine($"*{totalErrors.ToString().PadLeft(3, '0')}* Код ошибки: {error.ErrorCode}");
                     writer.WriteLine(ErrorMatcher.GetErrorDescription(error.ErrorCode));
                 }

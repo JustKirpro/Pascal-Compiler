@@ -1,12 +1,14 @@
-﻿
+﻿using System;
+using System.IO;
+
 namespace PascalCompiler
 {
     class Program
     {
         static void Main()
         {
-            SyntaxAnalyzer syntaxAnalyzer = new(@"/Users/kirpro/Desktop/input.pas", @"/Users/kirpro/Desktop/output.txt");
-            syntaxAnalyzer.Start();
+            SyntacticAnalyzer syntacticAnalyzer = new(Path.Combine(Environment.CurrentDirectory, "input.pas"), Path.Combine(Environment.CurrentDirectory, "output.txt"));
+            syntacticAnalyzer.Start();
         }
     }
 }

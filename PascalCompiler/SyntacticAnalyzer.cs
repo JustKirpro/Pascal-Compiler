@@ -1,14 +1,13 @@
 ﻿using System.Collections.Generic;
 
-
 namespace PascalCompiler
 {
-    public class SyntaxAnalyzer
+    public class SyntacticAnalyzer
     {
         private readonly LexicalAnalyzer lexer;
         private Token currentToken;
 
-        public SyntaxAnalyzer(string inputPath, string outputPath)
+        public SyntacticAnalyzer(string inputPath, string outputPath)
         {
             lexer = new(inputPath, outputPath);
             GetNextToken();
