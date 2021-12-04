@@ -1,4 +1,5 @@
-﻿namespace PascalCompiler
+﻿
+namespace PascalCompiler
 {
     public enum Operation
     {

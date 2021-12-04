@@ -17,17 +17,12 @@ namespace PascalCompiler
       
         public Token GetNextToken()
         {
-            while (currentCharacter == ' ' || currentCharacter == '\t')
+            while (currentCharacter == ' ' || currentCharacter == '\t' || currentCharacter == '\n')
                 currentCharacter = IOModule.ReadNextCharacter();
 
             if (currentCharacter == '\0')
             {
                 return null;
-            }
-            else if (currentCharacter == '\n')
-            {
-                currentCharacter = IOModule.ReadNextCharacter();
-                return GetNextToken();
             }
             else if (currentCharacter == '\'')
             {
@@ -195,6 +190,7 @@ namespace PascalCompiler
 
                 if (previousCharacter == '*' && currentCharacter == ')')
                 {
+                    currentCharacter = IOModule.ReadNextCharacter();
                     return GetNextToken();
                 }
                 else

@@ -13,6 +13,11 @@ namespace PascalCompiler
             GetNextToken();
         }
 
+        public void Start()
+        {
+            Program();
+        }
+
         private void GetNextToken()
         {
             currentToken = lexicalAnalyzer.GetNextToken();
@@ -37,11 +42,6 @@ namespace PascalCompiler
                 GetNextToken();
             else
                 AddError(12);
-        }
-
-        public void Start()
-        {
-            Program();
         }
 
         private void Program() // Программа

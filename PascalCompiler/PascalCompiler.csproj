@@ -10,9 +10,13 @@
     <None Remove="Tokens\" />
     <None Remove="Error\" />
     <None Remove="mono_crash.11a67480d0.0.json" />
+    <None Remove="Modules\" />
+    <None Remove="InputOutputFiles\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Tokens\" />
     <Folder Include="Error\" />
+    <Folder Include="Modules\" />
+    <Folder Include="InputOutputFiles\" />
   </ItemGroup>
 </Project>
