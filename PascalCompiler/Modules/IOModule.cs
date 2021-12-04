@@ -8,7 +8,7 @@ namespace PascalCompiler
         private readonly string[] lines;
         private readonly string outputPath;
         private int rowNumber;
-        private int characterNumber;
+        public int CharacterNumber { get; private set; }
         private readonly List<Error> errors = new();
         private int totalErrors;
 
@@ -21,34 +21,34 @@ namespace PascalCompiler
 
         public char ReadNextCharacter()
         {
-            if (characterNumber == 0 && rowNumber > 0)
+            if (CharacterNumber == 0 && rowNumber > 0)
                 WriteLine();
 
-            if (rowNumber < lines.Length && characterNumber < lines[rowNumber].Length)
-                return lines[rowNumber][characterNumber++];
+            if (rowNumber < lines.Length && CharacterNumber < lines[rowNumber].Length)
+                return lines[rowNumber][CharacterNumber++];
 
             rowNumber++;
-            characterNumber = 0;
+            CharacterNumber = 0;
             return rowNumber <= lines.Length ? '\n' : '\0';
         }
 
-        public void AddError(int errorCode)
+        public void AddError(int code, int position)
         {
-            errors.Add(new Error(errorCode));
+            errors.Add(new Error(code, position));
         }
 
         private void WriteLine()
         {
             using StreamWriter writer = File.AppendText(outputPath);
-            writer.WriteLine(lines[rowNumber-1]);
+            writer.WriteLine($"  {rowNumber.ToString().PadLeft(2, '0')}   {lines[rowNumber - 1]}");
 
             if (errors.Count > 0)
             {
                 foreach (Error error in errors)
                 {
                     totalErrors++;
-                    writer.WriteLine($"*{totalErrors.ToString().PadLeft(3, '0')}* Код ошибки: {error.ErrorCode}");
-                    writer.WriteLine(ErrorMatcher.GetErrorDescription(error.ErrorCode));
+                    writer.WriteLine($"**{totalErrors.ToString().PadLeft(2, '0')}**{" ^ ".PadLeft(error.Position + 2)} Код ошибки: {error.Code}");
+                    writer.WriteLine($"****** {ErrorMatcher.GetErrorDescription(error.Code)}");
                 }
 
                 errors.Clear();

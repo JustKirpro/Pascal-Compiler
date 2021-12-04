@@ -8,6 +8,7 @@ namespace PascalCompiler
         private const int MaxIdentifierLength = 127;
         private readonly IOModule IOModule;
         private char currentCharacter;
+        private int tokenStartPosition;
         
         public LexicalAnalyzer(string inputPath, string outputPath)
         {
@@ -19,6 +20,8 @@ namespace PascalCompiler
         {
             while (currentCharacter == ' ' || currentCharacter == '\t' || currentCharacter == '\n')
                 currentCharacter = IOModule.ReadNextCharacter();
+
+            tokenStartPosition = IOModule.CharacterNumber;
 
             if (currentCharacter == '\0')
             {
@@ -253,9 +256,9 @@ namespace PascalCompiler
             return GetNextToken();
         }
 
-        public void AddError(int errorCode)
+        public void AddError(int code)
         {
-            IOModule.AddError(errorCode);
+            IOModule.AddError(code, tokenStartPosition);
         }
     }
 }

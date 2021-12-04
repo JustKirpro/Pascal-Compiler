@@ -3,11 +3,13 @@ namespace PascalCompiler
 {
     public class Error
     {
-        public int ErrorCode { get; }
+        public int Code { get; }
+        public int Position { get; }
 
-        public Error(int errorCode)
+        public Error(int code, int position)
         {
-            ErrorCode = errorCode;
+            Code = code;
+            Position = position;
         }
     }
 }
