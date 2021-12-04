@@ -21,13 +21,15 @@ namespace PascalCompiler
 
         public char ReadNextCharacter()
         {
-            if (characterNumber != lines[rowNumber].Length)
+            if (characterNumber == 0 && rowNumber > 0)
+                WriteLine();
+
+            if (rowNumber < lines.Length && characterNumber < lines[rowNumber].Length)
                 return lines[rowNumber][characterNumber++];
 
-            WriteLine();
             rowNumber++;
             characterNumber = 0;
-            return rowNumber == lines.Length ? '\0' : '\n';
+            return rowNumber <= lines.Length ? '\n' : '\0';
         }
 
         public void AddError(int errorCode)
@@ -38,7 +40,7 @@ namespace PascalCompiler
         private void WriteLine()
         {
             using StreamWriter writer = File.AppendText(outputPath);
-            writer.WriteLine(lines[rowNumber]);
+            writer.WriteLine(lines[rowNumber-1]);
 
             if (errors.Count > 0)
             {
@@ -52,7 +54,7 @@ namespace PascalCompiler
                 errors.Clear();
             }
 
-            if (rowNumber == lines.Length - 1)
+            if (rowNumber == lines.Length)
                 writer.WriteLine($"\nВсего ошибок - {totalErrors}");
         }
     }

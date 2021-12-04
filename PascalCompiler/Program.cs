@@ -7,8 +7,14 @@ namespace PascalCompiler
     {
         static void Main()
         {
-            SyntacticAnalyzer syntacticAnalyzer = new(Path.Combine(Environment.CurrentDirectory, "input.pas"), Path.Combine(Environment.CurrentDirectory, "output.txt"));
-            syntacticAnalyzer.Start();
+            LexicalAnalyzer syntacticAnalyzer = new(Path.Combine(Environment.CurrentDirectory, "input.pas"), Path.Combine(Environment.CurrentDirectory, "output.txt"));
+            Token token = syntacticAnalyzer.GetNextToken();
+
+            while (token != null)
+            {
+                Console.WriteLine(token);
+                token = syntacticAnalyzer.GetNextToken();
+            }
         }
     }
 }
