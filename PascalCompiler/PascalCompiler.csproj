@@ -12,11 +12,13 @@
     <None Remove="mono_crash.11a67480d0.0.json" />
     <None Remove="Modules\" />
     <None Remove="InputOutputFiles\" />
+    <None Remove="Starters and followers for syntactic analyzer\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Tokens\" />
     <Folder Include="Error\" />
     <Folder Include="Modules\" />
-    <Folder Include="InputOutputFiles\" />
+    <Folder Include="Input and output files\" />
+    <Folder Include="BNF starters and followers\" />
   </ItemGroup>
 </Project>

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace PascalCompiler
 {
@@ -32,26 +31,26 @@ namespace PascalCompiler
                 GetNextToken();
         }
 
-        private bool IsTokenContainded(List<Operation> operations)
-        {
-            Operation currentOperation = (currentToken as OperationToken).Operation;
+        //private bool IsTokenContainded(List<Operation> operations)
+        //{
+        //    Operation currentOperation = (currentToken as OperationToken).Operation;
 
-            if (operations.Contains(currentOperation))
-                return true;
+        //    if (operations.Contains(currentOperation))
+        //        return true;
 
-            return false;
-        }
+        //    return false;
+        //}
 
-        private void SkipTo(List<Operation> starters, List<Operation> followers)
-        {
-            Operation currentOperaton = (currentToken as OperationToken).Operation;
+        //private void SkipTo(List<Operation> starters, List<Operation> followers)
+        //{
+        //    Operation currentOperaton = (currentToken as OperationToken).Operation;
 
-            while (currentToken != null && !starters.Contains(currentOperaton) && !followers.Contains(currentOperaton))
-            {
-                GetNextToken();
-                currentOperaton = (currentToken as OperationToken).Operation;
-            }
-        }
+        //    while (currentToken != null && !starters.Contains(currentOperaton) && !followers.Contains(currentOperaton))
+        //    {
+        //        GetNextToken();
+        //        currentOperaton = (currentToken as OperationToken).Operation;
+        //    }
+        //}
 
         private void Program() // Программа
         {
@@ -64,16 +63,6 @@ namespace PascalCompiler
 
         private void Block() // Блок
         {
-            if (!IsTokenContainded(Starters.Block))
-            {
-                AddError(8);
-                SkipTo(Starters.Block, Folowers.Block);
-            }
-            else
-            {
-
-            }
-
             VariablesPart();
             OperatorsPart();
         }
