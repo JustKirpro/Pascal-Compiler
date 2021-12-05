@@ -32,10 +32,7 @@ namespace PascalCompiler
             return rowNumber <= lines.Length ? '\n' : '\0';
         }
 
-        public void AddError(int code, int position)
-        {
-            errors.Add(new Error(code, position));
-        }
+        public void AddError(int code, int position) => errors.Add(new Error(code, position));
 
         private void WriteLine()
         {

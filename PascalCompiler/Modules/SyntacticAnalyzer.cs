@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace PascalCompiler
 {
@@ -13,35 +14,43 @@ namespace PascalCompiler
             GetNextToken();
         }
 
-        public void Start()
-        {
-            Program();
-        }
+        public void Start() => Program();
 
-        private void GetNextToken()
-        {
-            currentToken = lexicalAnalyzer.GetNextToken();
-        }
+        private void GetNextToken() => currentToken = lexicalAnalyzer.GetNextToken();
 
-        private void AddError(int errorCode)
-        {
-            lexicalAnalyzer.AddError(errorCode);
-        }
+        private void AddError(int errorCode) => lexicalAnalyzer.AddError(errorCode, currentToken.StartPosition);
 
         private void AcceptOperation(Operation operation)
         {
-            if (currentToken != null && currentToken.Type == TokenType.Operation && (currentToken as OperationToken).Operation == operation)
+            if (currentToken != null && currentToken is OperationToken && (currentToken as OperationToken).Operation == operation)
                 GetNextToken();
-            else
-                AddError(5);
         }
 
         private void AcceptIdentifier()
         {
-            if (currentToken != null && currentToken.Type == TokenType.Identifier)
+            if (currentToken != null && currentToken is IdentifierToken)
                 GetNextToken();
-            else
-                AddError(12);
+        }
+
+        private bool IsTokenContainded(List<Operation> operations)
+        {
+            Operation currentOperation = (currentToken as OperationToken).Operation;
+
+            if (operations.Contains(currentOperation))
+                return true;
+
+            return false;
+        }
+
+        private void SkipTo(List<Operation> starters, List<Operation> followers)
+        {
+            Operation currentOperaton = (currentToken as OperationToken).Operation;
+
+            while (currentToken != null && !starters.Contains(currentOperaton) && !followers.Contains(currentOperaton))
+            {
+                GetNextToken();
+                currentOperaton = (currentToken as OperationToken).Operation;
+            }
         }
 
         private void Program() // Программа
@@ -55,34 +64,18 @@ namespace PascalCompiler
 
         private void Block() // Блок
         {
-            TypesPart();
+            if (!IsTokenContainded(Starters.Block))
+            {
+                AddError(8);
+                SkipTo(Starters.Block, Folowers.Block);
+            }
+            else
+            {
+
+            }
+
             VariablesPart();
             OperatorsPart();
-        }
-
-        private void TypesPart() // Раздел типов
-        {
-            if (currentToken != null && currentToken.Type == TokenType.Operation && (currentToken as OperationToken).Operation == Operation.Type)
-            {
-                AcceptOperation(Operation.Type);
-                TypeDefinition();
-            }
-        }
-
-        private void TypeDefinition() // Определение типа
-        {
-            AcceptIdentifier();
-            AcceptOperation(Operation.Equals);
-            AcceptIdentifier();
-            AcceptOperation(Operation.Semicolon);
-
-            while (currentToken != null && currentToken.Type == TokenType.Identifier)
-            {
-                AcceptIdentifier();
-                AcceptOperation(Operation.Equals);
-                AcceptIdentifier();
-                AcceptOperation(Operation.Semicolon);
-            }
         }
 
         private void VariablesPart() // Раздел переменных
@@ -109,7 +102,7 @@ namespace PascalCompiler
             {
                 AcceptOperation(Operation.Comma);
                 AcceptIdentifier();
-                
+
             }
 
             AcceptOperation(Operation.Colon);

@@ -8,20 +8,24 @@ namespace PascalCompiler
         private const int MaxIdentifierLength = 127;
         private readonly IOModule IOModule;
         private char currentCharacter;
-        private int tokenStartPosition;
+        private int startPosition;
         
         public LexicalAnalyzer(string inputPath, string outputPath)
         {
             IOModule = new(inputPath, outputPath);
             currentCharacter = ' ';
         }
-      
+
+        public void AddError(int code) => IOModule.AddError(code, startPosition);
+
+        public void AddError(int code, int position) => IOModule.AddError(code, position);
+
         public Token GetNextToken()
         {
             while (currentCharacter == ' ' || currentCharacter == '\t' || currentCharacter == '\n')
                 currentCharacter = IOModule.ReadNextCharacter();
 
-            tokenStartPosition = IOModule.CharacterNumber;
+            startPosition = IOModule.CharacterNumber;
 
             if (currentCharacter == '\0')
             {
@@ -77,7 +81,7 @@ namespace PascalCompiler
             if (currentCharacter == '\'')
                 currentCharacter = IOModule.ReadNextCharacter();
 
-            return new ConstantToken(token);
+            return new ConstantToken(token, startPosition);
         }
 
         private Token ScanNumber()
@@ -96,24 +100,24 @@ namespace PascalCompiler
             {
                 if (double.TryParse(token, out double number) && !token.EndsWith('.'))
                 {
-                    return new ConstantToken(number);
+                    return new ConstantToken(number, startPosition);
                 }
                 else
                 {
                     AddError(4);
-                    return new ConstantToken(0.0);
+                    return new ConstantToken(0.0, startPosition);
                 }
             }
             else
             {
                 if (int.TryParse(token, out int number) && number <= MaxIntValue)
                 {
-                    return new ConstantToken(number);
+                    return new ConstantToken(number, startPosition);
                 }
                 else
                 {
                     AddError(5);
-                    return new ConstantToken(0);
+                    return new ConstantToken(0, startPosition);
                 }
             }
         }
@@ -132,14 +136,14 @@ namespace PascalCompiler
 
             if (OperationMatcher.IsOperation(token))
             {
-                return new OperationToken(OperationMatcher.GetOperation(token));
+                return new OperationToken(OperationMatcher.GetOperation(token), startPosition);
             }
             else
             {
                 if (token.Length > MaxIdentifierLength)
                     AddError(6);
 
-                return new IdentifierToken(token);
+                return new IdentifierToken(token, startPosition);
             }
         }
 
@@ -152,7 +156,7 @@ namespace PascalCompiler
 
             char previousCharacter = currentCharacter;
             currentCharacter = IOModule.ReadNextCharacter();
-            return new OperationToken(OperationMatcher.GetOperation(previousCharacter.ToString()));
+            return new OperationToken(OperationMatcher.GetOperation(previousCharacter.ToString()), startPosition);
         }
 
         private Token ScanMultipleCharacterOperator()
@@ -170,10 +174,10 @@ namespace PascalCompiler
             if (OperationMatcher.IsOperation(token))
             {
                 currentCharacter = IOModule.ReadNextCharacter();
-                return new OperationToken(OperationMatcher.GetOperation(token));
+                return new OperationToken(OperationMatcher.GetOperation(token), startPosition);
             }
 
-            return new OperationToken(OperationMatcher.GetOperation(previousCharacter.ToString()));
+            return new OperationToken(OperationMatcher.GetOperation(previousCharacter.ToString()), startPosition);
         }
 
         private Token ScanLeftParenthesis()
@@ -204,7 +208,7 @@ namespace PascalCompiler
             }
             else
             {
-                return new OperationToken(Operation.LeftParenthesis);
+                return new OperationToken(Operation.LeftParenthesis, startPosition);
             }
         }
 
@@ -220,7 +224,7 @@ namespace PascalCompiler
             }
             else
             {
-                return new OperationToken(Operation.Asterisk);
+                return new OperationToken(Operation.Asterisk, startPosition);
             }
         }
 
@@ -254,11 +258,6 @@ namespace PascalCompiler
             currentCharacter = IOModule.ReadNextCharacter();
             AddError(2);
             return GetNextToken();
-        }
-
-        public void AddError(int code)
-        {
-            IOModule.AddError(code, tokenStartPosition);
         }
     }
 }
