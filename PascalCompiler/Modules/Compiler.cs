@@ -5,6 +5,14 @@ namespace PascalCompiler
     public class Compiler
     {
         private readonly LexicalAnalyzer lexicalAnalyzer;
+        private readonly Scope scope = new();
+        private readonly Dictionary<string, Type> availableTypes = new()
+        {
+            { "INTEGER", new IntegerType() },
+            { "REAL", new RealType() },
+            { "STRING", new StringType() },
+            { "BOOLEAN", new BooleanType() }
+        };
         private Token currentToken;
 
         public Compiler(string inputPath, string outputPath)
@@ -30,27 +38,6 @@ namespace PascalCompiler
             if (currentToken != null && currentToken is IdentifierToken)
                 GetNextToken();
         }
-
-        //private bool IsTokenContainded(List<Operation> operations)
-        //{
-        //    Operation currentOperation = (currentToken as OperationToken).Operation;
-
-        //    if (operations.Contains(currentOperation))
-        //        return true;
-
-        //    return false;
-        //}
-
-        //private void SkipTo(List<Operation> starters, List<Operation> followers)
-        //{
-        //    Operation currentOperaton = (currentToken as OperationToken).Operation;
-
-        //    while (currentToken != null && !starters.Contains(currentOperaton) && !followers.Contains(currentOperaton))
-        //    {
-        //        GetNextToken();
-        //        currentOperaton = (currentToken as OperationToken).Operation;
-        //    }
-        //}
 
         private void Program() // Программа
         {
@@ -91,7 +78,6 @@ namespace PascalCompiler
             {
                 AcceptOperation(Operation.Comma);
                 AcceptIdentifier();
-
             }
 
             AcceptOperation(Operation.Colon);
@@ -166,11 +152,11 @@ namespace PascalCompiler
             Operator();
         }
 
-        private void Expression() // Выражение
+        private  void Expression() // Выражение
         {
             SimpleExpression();
 
-            while (IsLogicalOperation())
+            if (IsLogicalOperation())
             {
                 GetNextToken();
                 SimpleExpression();
@@ -201,12 +187,6 @@ namespace PascalCompiler
 
         private void Factor() // Множитель
         {
-            if (currentToken == null)
-            {
-                AddError(13);
-                return;
-            }
-
             if (currentToken.Type == TokenType.Operation)
             {
                 AcceptOperation(Operation.LeftParenthesis);
@@ -217,20 +197,11 @@ namespace PascalCompiler
                 GetNextToken();
         }
 
-        private bool IsAddOperation() // Аддитивная операция
-        {
-            return IsOperation(new List<Operation> { Operation.Plus, Operation.Minus, Operation.Or });
-        }
+        private bool IsAddOperation() => IsOperation(new List<Operation> { Operation.Plus, Operation.Minus, Operation.Or });
 
-        private bool IsMultOperation() // Мультипликативная операция
-        {
-            return IsOperation(new List<Operation> { Operation.Asterisk, Operation.Slash, Operation.Div, Operation.Mod, Operation.And });
-        }
+        private bool IsMultOperation() => IsOperation(new List<Operation> { Operation.Asterisk, Operation.Slash, Operation.Div, Operation.Mod, Operation.And });
 
-        private bool IsLogicalOperation() // Операция отношения
-        {
-            return IsOperation(new List<Operation> { Operation.Less, Operation.LessOrEqual, Operation.Greater, Operation.GreaterOrEqual, Operation.Equals, Operation.NotEqual });
-        }
+        private bool IsLogicalOperation() => IsOperation(new List<Operation> { Operation.Less, Operation.LessOrEqual, Operation.Greater, Operation.GreaterOrEqual, Operation.Equals, Operation.NotEqual });
 
         private bool IsOperation(List<Operation> operations)
         {

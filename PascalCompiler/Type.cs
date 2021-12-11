@@ -1,7 +1,7 @@
 ﻿
 namespace PascalCompiler
 {
-    public enum EType
+    public enum ValueType
     {
         Integer,
         Real,
@@ -9,29 +9,55 @@ namespace PascalCompiler
         Boolean
     };
 
-    public abstract class CType
+    public abstract class Type
     {
-        public EType Type { get; protected set; }
+        public ValueType ValueType { get; protected set; }
 
-        public abstract bool IsDerivedTo(CType type);
-
+        public abstract bool IsDerivedTo(Type type);
     }
 
-    public class IntegerType : CType
+    public class IntegerType : Type
     {
-        public IntegerType()
-        {
-            Type = EType.Integer;
-        }
+        public IntegerType() => ValueType = ValueType.Integer;
 
-        public override bool IsDerivedTo(CType type)
+        public override bool IsDerivedTo(Type type) => type.ValueType switch
         {
-            if (type.Type == EType.Integer || type.Type == EType.Real)
-                return true;
-
-            return false;    
-        }
+            ValueType.Integer => true,
+            ValueType.Real => true,
+            _ => false
+        };
     }
 
+    public class RealType : Type
+    {
+        public RealType() => ValueType = ValueType.Real;
 
+        public override bool IsDerivedTo(Type type) => type.ValueType switch
+        {
+            ValueType.Real => true,
+            _ => false
+        };
+    }
+
+    public class StringType : Type
+    {
+        public StringType() => ValueType = ValueType.String;
+
+        public override bool IsDerivedTo(Type type) => type.ValueType switch
+        {
+            ValueType.String => true,
+            _ => false
+        };
+    }
+
+    public class BooleanType : Type
+    {
+        public BooleanType() => ValueType = ValueType.Boolean;
+
+        public override bool IsDerivedTo(Type type) => type.ValueType switch
+        {
+            ValueType.Boolean => true,
+            _ => false
+        };
+    }
 }
