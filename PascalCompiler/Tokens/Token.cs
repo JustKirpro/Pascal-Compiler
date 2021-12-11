@@ -11,7 +11,7 @@ namespace PascalCompiler
     public abstract class Token
     {
         public TokenType Type { get; protected set; }
-        public int StartPosition;
+        public int StartPosition { get; protected set; }
     }
 
     public class IdentifierToken : Token
@@ -25,7 +25,7 @@ namespace PascalCompiler
             StartPosition = startPosition;
         }
 
-        public override string ToString() => $"{Type} | {Identifier}";
+        public override string ToString() => $"Type: {Type} | Value: {Identifier} | Start position: {StartPosition}";
     }
 
     public class OperationToken : Token
@@ -39,7 +39,7 @@ namespace PascalCompiler
             StartPosition = startPosition;
         }
 
-        public override string ToString() => $"{Type} | {Operation}";
+        public override string ToString() => $"Type: {Type} | Value: {Operation} | Start position: {StartPosition}";
     }
 
     public class ConstantToken : Token
@@ -67,6 +67,6 @@ namespace PascalCompiler
             StartPosition = startPosition;
         }
 
-        public override string ToString() => $"{Type} | {Variant}";
+        public override string ToString() => $"Type: {Type} | {Variant} | Start position: {StartPosition}";
     }
 }

@@ -23,7 +23,7 @@ namespace PascalCompiler
             Type = VariantType.Integer;
         }
 
-        public override string ToString() => $"{Type} | {Value}";
+        public override string ToString() => $"Type: {Type} | Value: {Value}";
     }
 
     public class RealVariant : Variant
@@ -36,7 +36,7 @@ namespace PascalCompiler
             Type = VariantType.Real;
         }
 
-        public override string ToString() => $"{Type} | {Value}";
+        public override string ToString() => $"Type: {Type} | Value: {Value}";
     }
 
     public class StringVariant : Variant
@@ -49,6 +49,6 @@ namespace PascalCompiler
             Type = VariantType.String;
         }
 
-        public override string ToString() => $"{Type} | {Value}";
+        public override string ToString() => $"Type: {Type} | Value: {Value}";
     }
 }

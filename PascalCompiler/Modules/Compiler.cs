@@ -2,12 +2,12 @@
 
 namespace PascalCompiler
 {
-    public class SyntacticAnalyzer
+    public class Compiler
     {
         private readonly LexicalAnalyzer lexicalAnalyzer;
         private Token currentToken;
 
-        public SyntacticAnalyzer(string inputPath, string outputPath)
+        public Compiler(string inputPath, string outputPath)
         {
             lexicalAnalyzer = new(inputPath, outputPath);
             GetNextToken();

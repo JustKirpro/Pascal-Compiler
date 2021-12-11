@@ -64,19 +64,23 @@ namespace PascalCompiler
 
         private Token ScanString()
         {
+            bool wasErrorFound = false;
             StringBuilder stringBuilder = new();
             currentCharacter = IOModule.ReadNextCharacter();
 
             while (currentCharacter != '\'' && currentCharacter != '\0')
             {
+                if (currentCharacter == '\n' && !wasErrorFound)
+                {
+                    AddError(3);
+                    wasErrorFound = true;
+                }
+
                 stringBuilder.Append(currentCharacter);
                 currentCharacter = IOModule.ReadNextCharacter();
             }
 
             string token = stringBuilder.ToString();
-
-            if (currentCharacter == '\0' || token.Contains('\n'))
-                AddError(3);
 
             if (currentCharacter == '\'')
                 currentCharacter = IOModule.ReadNextCharacter();
@@ -189,7 +193,7 @@ namespace PascalCompiler
                 char previousCharacter = currentCharacter;
                 currentCharacter = IOModule.ReadNextCharacter();
 
-                while (previousCharacter != '*' || currentCharacter != ')' && currentCharacter != '\0')
+                while (previousCharacter != '(' || currentCharacter != '*' && previousCharacter != '*' || currentCharacter != ')' && currentCharacter != '\0')
                 {
                     previousCharacter = currentCharacter;
                     currentCharacter = IOModule.ReadNextCharacter();
@@ -232,7 +236,7 @@ namespace PascalCompiler
         {
             currentCharacter = IOModule.ReadNextCharacter();
 
-            while (currentCharacter != '}' && currentCharacter != '\0' && currentCharacter != '\n')
+            while (currentCharacter != '}' && currentCharacter != '{' && currentCharacter != '\0' && currentCharacter != '\n')
                 currentCharacter = IOModule.ReadNextCharacter();
 
             if (currentCharacter == '}')

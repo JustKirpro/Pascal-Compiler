@@ -1,5 +1,4 @@
-﻿using System;
-
+﻿
 namespace PascalCompiler
 {
     public enum EType
