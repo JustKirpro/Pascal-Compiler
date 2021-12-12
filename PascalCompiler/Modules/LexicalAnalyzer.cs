@@ -193,7 +193,7 @@ namespace PascalCompiler
                 char previousCharacter = currentCharacter;
                 currentCharacter = IOModule.ReadNextCharacter();
 
-                while (previousCharacter != '(' || currentCharacter != '*' && previousCharacter != '*' || currentCharacter != ')' && currentCharacter != '\0')
+                while (previousCharacter != '*' || currentCharacter != ')' && currentCharacter != '\0')
                 {
                     previousCharacter = currentCharacter;
                     currentCharacter = IOModule.ReadNextCharacter();
@@ -236,7 +236,7 @@ namespace PascalCompiler
         {
             currentCharacter = IOModule.ReadNextCharacter();
 
-            while (currentCharacter != '}' && currentCharacter != '{' && currentCharacter != '\0' && currentCharacter != '\n')
+            while (currentCharacter != '{' && currentCharacter != '\0' && currentCharacter != '\n')
                 currentCharacter = IOModule.ReadNextCharacter();
 
             if (currentCharacter == '}')

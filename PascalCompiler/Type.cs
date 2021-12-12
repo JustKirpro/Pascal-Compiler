@@ -6,7 +6,8 @@ namespace PascalCompiler
         Integer,
         Real,
         String,
-        Boolean
+        Boolean,
+        Unknown
     };
 
     public abstract class Type
@@ -59,5 +60,12 @@ namespace PascalCompiler
             ValueType.Boolean => true,
             _ => false
         };
+    }
+
+    public class UnknownType : Type
+    {
+        public UnknownType() => ValueType = ValueType.Unknown;
+
+        public override bool IsDerivedTo(Type type) => true;
     }
 }

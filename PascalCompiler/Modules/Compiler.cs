@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace PascalCompiler
 {
@@ -8,10 +9,10 @@ namespace PascalCompiler
         private readonly Scope scope = new();
         private readonly Dictionary<string, Type> availableTypes = new()
         {
-            { "INTEGER", new IntegerType() },
-            { "REAL", new RealType() },
-            { "STRING", new StringType() },
-            { "BOOLEAN", new BooleanType() }
+            ["INTEGER"] = new IntegerType(),
+            ["REAL"] = new RealType(),
+            ["STRING"] = new StringType(),
+            ["BOOLEAN"] = new BooleanType()
         };
         private Token currentToken;
 
@@ -27,10 +28,19 @@ namespace PascalCompiler
 
         private void AddError(int errorCode) => lexicalAnalyzer.AddError(errorCode, currentToken.StartPosition);
 
-        private void AcceptOperation(Operation operation)
+        private void AddError(int code, int position) => lexicalAnalyzer.AddError(code, position);
+
+        private bool AcceptOperation(Operation operation)
         {
             if (currentToken != null && currentToken is OperationToken && (currentToken as OperationToken).Operation == operation)
+            {
                 GetNextToken();
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
 
         private void AcceptIdentifier()
@@ -54,7 +64,8 @@ namespace PascalCompiler
             OperatorsPart();
         }
 
-        private void VariablesPart() // Раздел переменных
+        // Раздел переменных
+        private void VariablesPart()
         {
             if (currentToken != null && currentToken.Type == TokenType.Operation && (currentToken as OperationToken).Operation == Operation.Var)
             {
@@ -70,18 +81,74 @@ namespace PascalCompiler
             }
         }
 
-        private void SameTypeVariables() // Описание однотипных переменных
+        // Описание однотипных переменных
+        private void SameTypeVariables()
         {
-            AcceptIdentifier();
+            List<IdentifierToken> variables = new();
+
+            AcceptVariable(variables);
 
             while (currentToken != null && currentToken.Type == TokenType.Operation && (currentToken as OperationToken).Operation == Operation.Comma)
             {
                 AcceptOperation(Operation.Comma);
-                AcceptIdentifier();
+                AcceptVariable(variables);
             }
 
             AcceptOperation(Operation.Colon);
-            AcceptIdentifier();
+            AcceptType(variables);
+            GetNextToken();
+        }
+
+        private void AcceptVariable(List<IdentifierToken> variables)
+        {
+            if (currentToken == null || currentToken.Type != TokenType.Identifier)
+            {
+                AddError(8);
+                throw new Exception("Ожидался идентификатор");
+            }
+
+            variables.Add(currentToken as IdentifierToken);
+            GetNextToken();
+        }
+
+        private void AcceptType(List<IdentifierToken> variables)
+        {
+            if (currentToken == null || currentToken.Type != TokenType.Identifier)
+            {
+                AddError(8);
+                throw new Exception("Ожидался идентификатор");
+            }
+
+            IdentifierToken type = currentToken as IdentifierToken;
+
+            if (!scope.IsTypeAvailable(type))
+            {
+                AddError(9);
+            }
+
+            foreach (IdentifierToken variable in variables)
+            {
+                if (scope.IsVariableDescribed(variable))
+                {
+                    AddError(10, variable.StartPosition);
+                }
+
+                if (variable.Identifier == type.Identifier)
+                {
+                    AddError(11, variable.StartPosition);
+                }
+
+                if (!scope.IsTypeAvailable(type) || variable.Identifier == type.Identifier)
+                {
+                    scope.AddVariable(variable);
+                }
+                else
+                {
+                    scope.AddVariable(variable, type);
+                }
+            }
+
+            GetNextToken();
         }
 
         private void OperatorsPart() // Раздел операторов
