@@ -40,7 +40,7 @@ namespace PascalCompiler
 
             int errorCode = OperationErrorMatcher.GetErrorCode(operation);
             AddError(errorCode);
-            throw new Exception("Ожидался оператор");
+            throw new OperationException();
         }
 
         private void AcceptIdentifier()
@@ -52,7 +52,7 @@ namespace PascalCompiler
             }
 
             AddError(100);
-            throw new Exception("Ожидался идентификатор");
+            throw new IdentifierException();
         }
 
         private void SkipTo(List<Operation> operations)
@@ -143,7 +143,7 @@ namespace PascalCompiler
             if (currentToken == null || currentToken.Type != TokenType.Identifier)
             {
                 AddError(100);
-                throw new Exception("Ожидался идентификатор");
+                throw new IdentifierException();
             }
 
             variables.Add(currentToken as IdentifierToken);
@@ -155,7 +155,7 @@ namespace PascalCompiler
             if (currentToken == null || currentToken.Type != TokenType.Identifier)
             {
                 AddError(100);
-                throw new Exception("Ожидался идентификатор");
+                throw new IdentifierException();
             }
 
             IdentifierToken type = currentToken as IdentifierToken;
@@ -192,12 +192,14 @@ namespace PascalCompiler
 
         private void OperatorsPart() // Раздел операторов
         {
-
             if (currentToken.Type != TokenType.Operation || (currentToken as OperationToken).Operation != Operation.Begin)
                 SkipTo(new List<Operation> { Operation.Begin });
 
             AcceptOperation(Operation.Begin);
             Operator();
+
+            if (currentToken.Type != TokenType.Operation || (currentToken as OperationToken).Operation != Operation.Semicolon || (currentToken as OperationToken).Operation != Operation.End)
+                SkipTo(new List<Operation> { Operation.Semicolon, Operation.End });
 
             while (currentToken != null && currentToken.Type == TokenType.Operation && (currentToken as OperationToken).Operation == Operation.Semicolon) 
             {
@@ -210,12 +212,6 @@ namespace PascalCompiler
 
         private void Operator() // Оператор
         {
-            if (currentToken == null)
-            {
-                AddError(54);
-                return;
-            }
-
             if (currentToken.Type == TokenType.Identifier)
             {
                 AssignmentOperator();
@@ -233,48 +229,70 @@ namespace PascalCompiler
             }
         }
 
-        // TODO syntax
-        private void AssignmentOperator() // Оператор присваивания
+        // Оператор присваивания
+        private void AssignmentOperator()
         {
-            int variableStartPosition = currentToken.StartPosition;
+            IdentifierToken variable = currentToken as IdentifierToken;
 
-            if (!scope.IsVariableDescribed(currentToken as IdentifierToken))
+            if (!scope.IsVariableDescribed(variable))
             {
-                scope.AddVariable(currentToken as IdentifierToken);
-                AddError(104, variableStartPosition);
+                scope.AddVariable(variable);
+                AddError(104, variable.StartPosition);
             }
 
             Type variableType = GetVariableType();
-            AcceptOperation(Operation.Assignment);
-            int expressionStartPosition = currentToken.StartPosition;
-            Type expressionType = Expression();
+            GetNextToken();
+            int expressionStartPosition = 0;
 
-            if (!expressionType.IsDerivedTo(variableType)) 
+            try
             {
-                switch (variableType.ValueType)
+                AcceptOperation(Operation.Assignment);
+                expressionStartPosition = currentToken.StartPosition;
+                Type expressionType = Expression();
+
+                if (!expressionType.IsDerivedTo(variableType))
                 {
-                    case ValueType.Integer:
-                        AddError(106, expressionStartPosition);
-                        return;
-                    case ValueType.Real:
-                        AddError(107, expressionStartPosition);
-                        return;
-                    case ValueType.String:
-                        AddError(108, expressionStartPosition);
-                        return;
+                    switch (variableType.ValueType)
+                    {
+                        case ValueType.Integer:
+                            AddError(106, expressionStartPosition);
+                            return;
+                        case ValueType.Real:
+                            AddError(107, expressionStartPosition);
+                            return;
+                        case ValueType.String:
+                            AddError(108, expressionStartPosition);
+                            return;
+                    }
                 }
-                
+            }
+            catch(Exception exception)
+            {
+                if (exception is ExpressionException)
+                    AddError(105, expressionStartPosition);
+
+                SkipTo(new List<Operation> { Operation.Begin, Operation.Semicolon, Operation.If, Operation.While, Operation.Point });
             }
         }
 
-        private void IfOperator() // Условный оператор
+        // Условный оператор
+        private void IfOperator()
         {
             AcceptOperation(Operation.If);
             int expressionStartPosition = currentToken.StartPosition;
-            Type expressionType = Expression();
 
-            if (!(expressionType is BooleanType))
-                AddError(109, expressionStartPosition);
+            try
+            {
+                Type expressionType = Expression();
+
+                if (expressionType.ValueType != ValueType.Boolean)
+                    AddError(109, expressionStartPosition);
+            }
+            catch
+            {
+                AddError(105, expressionStartPosition);
+                SkipTo(new List<Operation> { Operation.Then, Operation.Else, Operation.Semicolon, Operation.If, Operation.While, Operation.Begin });
+            }
 
             AcceptOperation(Operation.Then);
             Operator();
@@ -286,7 +304,8 @@ namespace PascalCompiler
             }
         }
 
-        private void WhileOperator() // Цикл с предусловием
+        // Цикл с предусловием
+        private void WhileOperator()
         {
             AcceptOperation(Operation.While);
             int expressionStartPosition = currentToken.StartPosition;
@@ -311,9 +330,9 @@ namespace PascalCompiler
                 GetNextToken();
                 Type rightPartType = SimpleExpression();
 
-                if (!leftPartType.IsDerivedTo(rightPartType))
+                if (!rightPartType.IsDerivedTo(leftPartType))
                 {
-                    AddError(105);
+                    throw new ExpressionException();
                 }
 
                 return availableTypes["BOOLEAN"];
@@ -334,7 +353,7 @@ namespace PascalCompiler
 
                 if (!rightPartType.IsDerivedTo(leftPatyType)) 
                 {
-                    AddError(105);
+                    throw new ExpressionException();
                 }
             }
 
@@ -353,7 +372,7 @@ namespace PascalCompiler
 
                 if (!rightPartType.IsDerivedTo(leftPartType))
                 {
-                    AddError(105);
+                    throw new ExpressionException();
                 }
             }
 
@@ -367,9 +386,16 @@ namespace PascalCompiler
 
             if (currentToken.Type == TokenType.Operation)
             {
-                AcceptOperation(Operation.LeftParenthesis);
-                factorType = Expression();
-                AcceptOperation(Operation.RightParenthesis);
+                try
+                {
+                    AcceptOperation(Operation.LeftParenthesis);
+                    factorType = Expression();
+                    AcceptOperation(Operation.RightParenthesis);
+                }
+                catch
+                {
+                    throw new ExpressionException();
+                }
             }
             else if (currentToken.Type == TokenType.Constant)
             {

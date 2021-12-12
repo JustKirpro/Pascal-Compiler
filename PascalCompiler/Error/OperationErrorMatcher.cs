@@ -12,6 +12,7 @@ namespace PascalCompiler
             [Operation.Point] = 11,
             [Operation.Colon] = 12,
             [Operation.End] = 13,
+            [Operation.Assignment] = 14,
         };
 
         public static int GetErrorCode(Operation operation) => dictionary[operation];
