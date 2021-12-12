@@ -13,6 +13,7 @@ namespace PascalCompiler
             [Operation.Colon] = 12,
             [Operation.End] = 13,
             [Operation.Assignment] = 14,
+            [Operation.Do] = 15,
         };
 
         public static int GetErrorCode(Operation operation) => dictionary[operation];

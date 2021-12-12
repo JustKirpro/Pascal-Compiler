@@ -55,7 +55,7 @@ namespace PascalCompiler
             variablesTable.Add(variable, typesTable["UNKNOWN"]);
         }
 
-        public Type GetVariableType(IdentifierToken variable) => IsVariableDescribed(variable) ? variablesTable[GetVariable(variable)] : null;
+        public Type GetVariableType(IdentifierToken variable) => variablesTable[GetVariable(variable)];
 
         private IdentifierToken GetVariable(IdentifierToken newVariable)
         {

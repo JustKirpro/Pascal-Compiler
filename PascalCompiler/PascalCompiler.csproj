@@ -16,7 +16,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Tokens\" />
-    <Folder Include="Error\" />
+    <Folder Include="Errors\" />
     <Folder Include="Modules\" />
     <Folder Include="Input and output files\" />
   </ItemGroup>
