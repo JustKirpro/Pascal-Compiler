@@ -26,15 +26,6 @@ namespace PascalCompiler
             return false;
         }
 
-        private IdentifierToken GetVariable(IdentifierToken newVariable)
-        {
-            foreach (IdentifierToken variable in variablesTable.Keys)
-                if (newVariable.Identifier == variable.Identifier)
-                    return variable;
-
-            return null;
-        }
-
         public void AddVariable(IdentifierToken variable, IdentifierToken type)
         {
             if (IsVariableDescribed(variable))
@@ -62,6 +53,17 @@ namespace PascalCompiler
             }
 
             variablesTable.Add(variable, typesTable["UNKNOWN"]);
+        }
+
+        public Type GetVariableType(IdentifierToken variable) => IsVariableDescribed(variable) ? variablesTable[GetVariable(variable)] : null;
+
+        private IdentifierToken GetVariable(IdentifierToken newVariable)
+        {
+            foreach (IdentifierToken variable in variablesTable.Keys)
+                if (newVariable.Identifier == variable.Identifier)
+                    return variable;
+
+            return null;
         }
     }
 }

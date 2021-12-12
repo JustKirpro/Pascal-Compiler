@@ -236,7 +236,7 @@ namespace PascalCompiler
         {
             currentCharacter = IOModule.ReadNextCharacter();
 
-            while (currentCharacter != '{' && currentCharacter != '\0' && currentCharacter != '\n')
+            while (currentCharacter != '}' && currentCharacter != '\0' && currentCharacter != '\n')
                 currentCharacter = IOModule.ReadNextCharacter();
 
             if (currentCharacter == '}')

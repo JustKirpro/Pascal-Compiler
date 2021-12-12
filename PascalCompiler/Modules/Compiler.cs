@@ -30,35 +30,68 @@ namespace PascalCompiler
 
         private void AddError(int code, int position) => lexicalAnalyzer.AddError(code, position);
 
-        private bool AcceptOperation(Operation operation)
+        private void AcceptOperation(Operation operation)
         {
             if (currentToken != null && currentToken is OperationToken && (currentToken as OperationToken).Operation == operation)
             {
                 GetNextToken();
-                return true;
+                return;
             }
-            else
-            {
-                return false;
-            }
+
+            int errorCode = OperationErrorMatcher.GetErrorCode(operation);
+            AddError(errorCode);
+            throw new Exception("Ожидался оператор");
         }
 
         private void AcceptIdentifier()
         {
             if (currentToken != null && currentToken is IdentifierToken)
+            {
                 GetNextToken();
+                return;
+            }
+
+            AddError(100);
+            throw new Exception("Ожидался идентификатор");
         }
 
-        private void Program() // Программа
+        private void SkipTo(List<Operation> operations)
         {
-            AcceptOperation(Operation.Program);
-            AcceptIdentifier();
-            AcceptOperation(Operation.Semicolon);
+            while (currentToken.Type != TokenType.Operation)
+            {
+                GetNextToken();
+            }
+            Operation currentOperaton = (currentToken as OperationToken).Operation;
+
+            while (currentToken != null && !operations.Contains(currentOperaton))
+            {
+                GetNextToken();
+
+                if (currentToken.Type == TokenType.Operation)
+                    currentOperaton = (currentToken as OperationToken).Operation;
+            }
+        }
+
+        // Программа
+        private void Program()
+        {
+            try
+            {
+                AcceptOperation(Operation.Program);
+                AcceptIdentifier();
+                AcceptOperation(Operation.Semicolon);
+            }
+            catch
+            {
+                SkipTo(new List<Operation> { Operation.Var, Operation.Begin });
+            }
+
             Block();
             AcceptOperation(Operation.Point);
         }
 
-        private void Block() // Блок
+        // Блок
+        private void Block()
         {
             VariablesPart();
             OperatorsPart();
@@ -71,13 +104,9 @@ namespace PascalCompiler
             {
                 AcceptOperation(Operation.Var);
                 SameTypeVariables();
-                AcceptOperation(Operation.Semicolon);
 
                 while (currentToken != null && currentToken.Type == TokenType.Identifier)
-                {
                     SameTypeVariables();
-                    AcceptOperation(Operation.Semicolon);
-                }
             }
         }
 
@@ -86,24 +115,34 @@ namespace PascalCompiler
         {
             List<IdentifierToken> variables = new();
 
-            AcceptVariable(variables);
-
-            while (currentToken != null && currentToken.Type == TokenType.Operation && (currentToken as OperationToken).Operation == Operation.Comma)
+            try
             {
-                AcceptOperation(Operation.Comma);
                 AcceptVariable(variables);
-            }
 
-            AcceptOperation(Operation.Colon);
-            AcceptType(variables);
-            GetNextToken();
+                while (currentToken != null && currentToken.Type == TokenType.Operation && (currentToken as OperationToken).Operation == Operation.Comma)
+                {
+                    AcceptOperation(Operation.Comma);
+                    AcceptVariable(variables);
+                }
+
+                AcceptOperation(Operation.Colon);
+                AcceptType(variables);
+                AcceptOperation(Operation.Semicolon);
+            }
+            catch
+            {
+                SkipTo(new List<Operation> { Operation.Semicolon, Operation.Begin });
+
+                if (currentToken.Type == TokenType.Operation && (currentToken as OperationToken).Operation == Operation.Semicolon)
+                    GetNextToken();
+            }
         }
 
         private void AcceptVariable(List<IdentifierToken> variables)
         {
             if (currentToken == null || currentToken.Type != TokenType.Identifier)
             {
-                AddError(8);
+                AddError(100);
                 throw new Exception("Ожидался идентификатор");
             }
 
@@ -115,7 +154,7 @@ namespace PascalCompiler
         {
             if (currentToken == null || currentToken.Type != TokenType.Identifier)
             {
-                AddError(8);
+                AddError(100);
                 throw new Exception("Ожидался идентификатор");
             }
 
@@ -123,19 +162,19 @@ namespace PascalCompiler
 
             if (!scope.IsTypeAvailable(type))
             {
-                AddError(9);
+                AddError(101);
             }
 
             foreach (IdentifierToken variable in variables)
             {
                 if (scope.IsVariableDescribed(variable))
                 {
-                    AddError(10, variable.StartPosition);
+                    AddError(102, variable.StartPosition);
                 }
 
                 if (variable.Identifier == type.Identifier)
                 {
-                    AddError(11, variable.StartPosition);
+                    AddError(103, variable.StartPosition);
                 }
 
                 if (!scope.IsTypeAvailable(type) || variable.Identifier == type.Identifier)
@@ -153,10 +192,14 @@ namespace PascalCompiler
 
         private void OperatorsPart() // Раздел операторов
         {
+
+            if (currentToken.Type != TokenType.Operation || (currentToken as OperationToken).Operation != Operation.Begin)
+                SkipTo(new List<Operation> { Operation.Begin });
+
             AcceptOperation(Operation.Begin);
             Operator();
 
-            while (currentToken != null && currentToken.Type == TokenType.Operation && (currentToken as OperationToken).Operation == Operation.Semicolon)
+            while (currentToken != null && currentToken.Type == TokenType.Operation && (currentToken as OperationToken).Operation == Operation.Semicolon) 
             {
                 AcceptOperation(Operation.Semicolon);
                 Operator();
@@ -190,17 +233,49 @@ namespace PascalCompiler
             }
         }
 
+        // TODO syntax
         private void AssignmentOperator() // Оператор присваивания
         {
-            AcceptIdentifier();
+            int variableStartPosition = currentToken.StartPosition;
+
+            if (!scope.IsVariableDescribed(currentToken as IdentifierToken))
+            {
+                scope.AddVariable(currentToken as IdentifierToken);
+                AddError(104, variableStartPosition);
+            }
+
+            Type variableType = GetVariableType();
             AcceptOperation(Operation.Assignment);
-            Expression();
+            int expressionStartPosition = currentToken.StartPosition;
+            Type expressionType = Expression();
+
+            if (!expressionType.IsDerivedTo(variableType)) 
+            {
+                switch (variableType.ValueType)
+                {
+                    case ValueType.Integer:
+                        AddError(106, expressionStartPosition);
+                        return;
+                    case ValueType.Real:
+                        AddError(107, expressionStartPosition);
+                        return;
+                    case ValueType.String:
+                        AddError(108, expressionStartPosition);
+                        return;
+                }
+                
+            }
         }
 
         private void IfOperator() // Условный оператор
         {
             AcceptOperation(Operation.If);
-            Expression();
+            int expressionStartPosition = currentToken.StartPosition;
+            Type expressionType = Expression();
+
+            if (!(expressionType is BooleanType))
+                AddError(109, expressionStartPosition);
+
             AcceptOperation(Operation.Then);
             Operator();
 
@@ -214,60 +289,109 @@ namespace PascalCompiler
         private void WhileOperator() // Цикл с предусловием
         {
             AcceptOperation(Operation.While);
-            Expression();
+            int expressionStartPosition = currentToken.StartPosition;
+            Type expressionType = Expression();
+
+            if (!(expressionType is BooleanType))
+            {
+                AddError(109, expressionStartPosition);
+            }
+
             AcceptOperation(Operation.Do);
             Operator();
         }
 
-        private  void Expression() // Выражение
+        // Выражение
+        private Type Expression()
         {
-            SimpleExpression();
+            Type leftPartType = SimpleExpression();
 
             if (IsLogicalOperation())
             {
                 GetNextToken();
-                SimpleExpression();
+                Type rightPartType = SimpleExpression();
+
+                if (!leftPartType.IsDerivedTo(rightPartType))
+                {
+                    AddError(105);
+                }
+
+                return availableTypes["BOOLEAN"];
             }
+
+            return leftPartType;
         }
 
-        private void SimpleExpression() // Простое выражение
+        // Простое выражение
+        private Type SimpleExpression()
         {
-            Term();
+            Type leftPatyType = Term();
 
-            while (IsAddOperation())
+            while (IsAdditiveOperation())
             {
                 GetNextToken();
-                Term();
+                Type rightPartType = Term();
+
+                if (!rightPartType.IsDerivedTo(leftPatyType)) 
+                {
+                    AddError(105);
+                }
             }
+
+            return leftPatyType;
         }
 
-        private void Term() // Слагаемое
+        // Слагаемое
+        private Type Term()
         {
-            Factor();
+            Type leftPartType = Factor();
 
             while (IsMultOperation())
             {
                 GetNextToken();
-                Factor();
+                Type rightPartType = Factor();
+
+                if (!rightPartType.IsDerivedTo(leftPartType))
+                {
+                    AddError(105);
+                }
             }
+
+            return leftPartType;
         }
 
-        private void Factor() // Множитель
+        // Множитель
+        private Type Factor()
         {
+            Type factorType;
+
             if (currentToken.Type == TokenType.Operation)
             {
                 AcceptOperation(Operation.LeftParenthesis);
-                Expression();
+                factorType = Expression();
                 AcceptOperation(Operation.RightParenthesis);
             }
-            else
+            else if (currentToken.Type == TokenType.Constant)
+            {
+                factorType = GetConstantType();
                 GetNextToken();
+            }
+            else
+            {
+                factorType = GetVariableType();
+                GetNextToken();
+            }
+
+            return factorType;
         }
 
-        private bool IsAddOperation() => IsOperation(new List<Operation> { Operation.Plus, Operation.Minus, Operation.Or });
+        // Аддитивная операция
+        private bool IsAdditiveOperation() => IsOperation(new List<Operation> { Operation.Plus, Operation.Minus, Operation.Or });
 
+        // Мультипликативная операция
         private bool IsMultOperation() => IsOperation(new List<Operation> { Operation.Asterisk, Operation.Slash, Operation.Div, Operation.Mod, Operation.And });
 
+        // Операция отношения
         private bool IsLogicalOperation() => IsOperation(new List<Operation> { Operation.Less, Operation.LessOrEqual, Operation.Greater, Operation.GreaterOrEqual, Operation.Equals, Operation.NotEqual });
 
         private bool IsOperation(List<Operation> operations)
@@ -282,6 +406,31 @@ namespace PascalCompiler
                     return true;
 
             return false;
+        }
+
+        private Type GetConstantType()
+        {
+            ConstantToken constant = currentToken as ConstantToken;
+
+            if (constant.Variant.Type == VariantType.Integer)
+                return availableTypes["INTEGER"];
+            else if (constant.Variant.Type == VariantType.Real)
+                return availableTypes["REAL"];
+            else
+                return availableTypes["STRING"];
+        }
+
+        private Type GetVariableType()
+        {
+            IdentifierToken variable = currentToken as IdentifierToken;
+
+            if (!scope.IsVariableDescribed(variable))
+            {
+                AddError(104);
+                scope.AddVariable(variable);
+            }
+
+            return scope.GetVariableType(variable);
         }
     }
 }

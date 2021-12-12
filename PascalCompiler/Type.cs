@@ -25,6 +25,7 @@ namespace PascalCompiler
         {
             ValueType.Integer => true,
             ValueType.Real => true,
+            ValueType.Unknown => true,
             _ => false
         };
     }
@@ -36,6 +37,7 @@ namespace PascalCompiler
         public override bool IsDerivedTo(Type type) => type.ValueType switch
         {
             ValueType.Real => true,
+            ValueType.Unknown => true,
             _ => false
         };
     }
@@ -47,6 +49,7 @@ namespace PascalCompiler
         public override bool IsDerivedTo(Type type) => type.ValueType switch
         {
             ValueType.String => true,
+            ValueType.Unknown => true,
             _ => false
         };
     }
@@ -58,6 +61,7 @@ namespace PascalCompiler
         public override bool IsDerivedTo(Type type) => type.ValueType switch
         {
             ValueType.Boolean => true,
+            ValueType.Unknown => true,
             _ => false
         };
     }

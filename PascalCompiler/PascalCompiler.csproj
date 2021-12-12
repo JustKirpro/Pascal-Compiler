@@ -19,6 +19,5 @@
     <Folder Include="Error\" />
     <Folder Include="Modules\" />
     <Folder Include="Input and output files\" />
-    <Folder Include="BNF starters and followers\" />
   </ItemGroup>
 </Project>
