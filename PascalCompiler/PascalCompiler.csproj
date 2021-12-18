@@ -7,7 +7,6 @@
 
   <ItemGroup>
     <None Remove="..\.editorconfig" />
-    <None Remove="Tokens\" />
     <None Remove="Error\" />
     <None Remove="mono_crash.11a67480d0.0.json" />
     <None Remove="Modules\" />
@@ -15,7 +14,6 @@
     <None Remove="Starters and followers for syntactic analyzer\" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Tokens\" />
     <Folder Include="Errors\" />
     <Folder Include="Modules\" />
     <Folder Include="Input and output files\" />

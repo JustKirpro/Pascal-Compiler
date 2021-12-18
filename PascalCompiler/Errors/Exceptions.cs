@@ -2,13 +2,32 @@
 
 namespace PascalCompiler
 {
-    public class ExpressionException : Exception
+    public abstract class ExpressionException : Exception
     {
-        public ExpressionException() { }
+        public int ErrorPostion { get; protected set; }
     }
 
-    public class TypeException : Exception
+    public class OperatorException : ExpressionException
     {
-        public TypeException() { }
+        public OperatorException(int errorPostion)
+        {
+            ErrorPostion = errorPostion;
+        }
+    }
+
+    public class TypeException : ExpressionException
+    {
+        public TypeException(int errorPostion)
+        {
+            ErrorPostion = errorPostion;
+        }
+    }
+
+    public class OperationException : ExpressionException
+    {
+        public OperationException(int errorPostion)
+        {
+            ErrorPostion = errorPostion;
+        }
     }
 }

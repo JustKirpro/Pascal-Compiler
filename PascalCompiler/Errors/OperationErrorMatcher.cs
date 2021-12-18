@@ -8,12 +8,13 @@ namespace PascalCompiler
         {
             [Operation.Program] = 8,
             [Operation.Begin] = 9,
-            [Operation.Semicolon] = 10,
-            [Operation.Point] = 11,
-            [Operation.Colon] = 12,
-            [Operation.End] = 13,
-            [Operation.Assignment] = 14,
-            [Operation.Do] = 15,
+            [Operation.End] = 10,
+            [Operation.Then] = 11,
+            [Operation.Do] = 12,
+            [Operation.Assignment] = 13,
+            [Operation.Semicolon] = 14,
+            [Operation.Colon] = 15,
+            [Operation.Point] = 16
         };
 
         public static int GetErrorCode(Operation operation) => dictionary[operation];
