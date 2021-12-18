@@ -4,18 +4,16 @@ namespace PascalCompiler
 {
     public class Scope
     {
-        private readonly Dictionary<string, Type> typesTable = new()
-        {
-            ["INTEGER"] = new IntegerType(),
-            ["REAL"] = new RealType(),
-            ["STRING"] = new StringType(),
-            ["UNKNOWN"] = new UnknownType()
-        };
         private readonly Dictionary<IdentifierToken, Type> variablesTable = new();
 
         public Scope() { }
 
-        public bool IsTypeAvailable(IdentifierToken type) => typesTable.ContainsKey(type.Identifier.ToUpper()) && !IsVariableDescribed(type);
+        public bool IsTypeAvailable(IdentifierToken type)
+        {
+            string typeName = type.Identifier.ToUpper();
+
+            return typeName == "INTEGER" || typeName == "REAL" || typeName == "STRING" && !IsVariableDescribed(type);
+        }
 
         public bool IsVariableDescribed(IdentifierToken newVariable)
         {
@@ -32,15 +30,15 @@ namespace PascalCompiler
             {
                 IdentifierToken describedVariable = GetVariable(variable);
 
-                if (typesTable[type.Identifier.ToUpper()] != variablesTable[describedVariable])
+                if (Types.GetType(type.Identifier) != variablesTable[describedVariable])
                 {
                     variablesTable.Remove(describedVariable);
-                    variablesTable.Add(variable, typesTable["UNKNOWN"]);
+                    variablesTable.Add(variable, Types.GetType("UNKNOWN"));
                 }
             }
             else
             {
-                variablesTable.Add(variable, typesTable[type.Identifier.ToUpper()]);
+                variablesTable.Add(variable, Types.GetType(type.Identifier));
             }
         }
 
@@ -52,7 +50,7 @@ namespace PascalCompiler
                 variablesTable.Remove(describedVariable);
             }
 
-            variablesTable.Add(variable, typesTable["UNKNOWN"]);
+            variablesTable.Add(variable, Types.GetType("UNKNOWN"));
         }
 
         public Type GetVariableType(IdentifierToken variable) => variablesTable[GetVariable(variable)];

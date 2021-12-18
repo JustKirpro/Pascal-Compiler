@@ -7,13 +7,6 @@ namespace PascalCompiler
     {
         private readonly LexicalAnalyzer lexicalAnalyzer;
         private readonly Scope scope = new();
-        private readonly Dictionary<string, Type> availableTypes = new()
-        {
-            ["INTEGER"] = new IntegerType(),
-            ["REAL"] = new RealType(),
-            ["STRING"] = new StringType(),
-            ["BOOLEAN"] = new BooleanType()
-        };
         private Token currentToken;
 
         public Compiler(string inputPath, string outputPath)
@@ -37,7 +30,7 @@ namespace PascalCompiler
             if (currentToken == null || currentToken.Type != TokenType.Operation || (currentToken as OperationToken).Operation != operation)
             {
                 AddError(OperationErrorMatcher.GetErrorCode(operation));
-                throw new OperationException();
+                throw new Exception();
             }
 
             GetNextToken();
@@ -48,7 +41,7 @@ namespace PascalCompiler
             if (!IsCurrentTokenIdentifier())
             {
                 AddError(100);
-                throw new IdentifierException();
+                throw new Exception();
             }
 
             GetNextToken();
@@ -79,7 +72,7 @@ namespace PascalCompiler
                 AcceptIdentifier();
                 AcceptOperation(Operation.Semicolon);
             }
-            catch (OperationException)
+            catch
             {
                 SkipTokensTo(NextTokens.Program);
             }
@@ -141,7 +134,7 @@ namespace PascalCompiler
             if (!IsCurrentTokenIdentifier())
             {
                 AddError(100);
-                throw new IdentifierException();
+                throw new Exception();
             }
 
             variables.Add(currentToken as IdentifierToken);
@@ -153,7 +146,7 @@ namespace PascalCompiler
             if (!IsCurrentTokenIdentifier())
             {
                 AddError(100);
-                throw new IdentifierException();
+                throw new Exception();
             }
 
             IdentifierToken type = currentToken as IdentifierToken;
@@ -267,6 +260,8 @@ namespace PascalCompiler
             {
                 if (exception is ExpressionException)
                     AddError(105, expressionStartPosition);
+                else if (exception is TypeException)
+                    AddError(16, expressionStartPosition);
 
                 SkipTokensTo(NextTokens.AssignmentOperator);
             }
@@ -281,7 +276,7 @@ namespace PascalCompiler
             try
             {
                 Type expressiontType = Expression();
-                if (expressiontType != availableTypes["BOOLEAN"])
+                if (expressiontType != Types.GetType("BOOLEAN"))
                     AddError(109, expressionStartPosition);
             }
             catch
@@ -327,7 +322,7 @@ namespace PascalCompiler
                 expressionStartPosition = currentToken.StartPosition;
                 Type expressionType = Expression();
 
-                if (expressionType != availableTypes["BOOLEAN"])
+                if (expressionType != Types.GetType("BOOLEAN"))
                     AddError(109, expressionStartPosition);
 
                 AcceptOperation(Operation.Do);
@@ -353,10 +348,10 @@ namespace PascalCompiler
                 GetNextToken();
                 Type rightPartType = SimpleExpression();
 
-                if (!rightPartType.IsDerivedTo(leftPartType))
-                    throw new ExpressionException();
+                if (Types.AreTypesDerived(leftPartType, rightPartType))
+                    return Types.GetType("BOOLEAN");
                 else
-                    return availableTypes["BOOLEAN"];
+                    throw new TypeException();
             }
 
             return leftPartType;
@@ -372,8 +367,10 @@ namespace PascalCompiler
                 GetNextToken();
                 Type rightPartType = Term();
 
-                if (!rightPartType.IsDerivedTo(leftPartType))
-                    throw new ExpressionException();
+                if (Types.AreTypesDerived(leftPartType, rightPartType))
+                    leftPartType = Types.DeriveTypes(leftPartType, rightPartType);
+                else
+                    throw new TypeException();
             }
 
             return leftPartType;
@@ -389,8 +386,10 @@ namespace PascalCompiler
                 GetNextToken();
                 Type rightPartType = Factor();
 
-                if (!rightPartType.IsDerivedTo(leftPartType))
-                    throw new ExpressionException();
+                if (Types.AreTypesDerived(leftPartType, rightPartType))
+                    leftPartType = Types.DeriveTypes(leftPartType, rightPartType);
+                else
+                    throw new TypeException();
             }
 
             return leftPartType;
@@ -470,11 +469,11 @@ namespace PascalCompiler
             ConstantToken constant = currentToken as ConstantToken;
 
             if (constant.Variant.Type == VariantType.Integer)
-                return availableTypes["INTEGER"];
+                return Types.GetType("INTEGER");
             else if (constant.Variant.Type == VariantType.Real)
-                return availableTypes["REAL"];
+                return Types.GetType("REAL");
             else
-                return availableTypes["STRING"];
+                return Types.GetType("STRING");
         }
     }
 }

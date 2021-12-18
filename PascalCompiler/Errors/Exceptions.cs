@@ -7,13 +7,8 @@ namespace PascalCompiler
         public ExpressionException() { }
     }
 
-    public class OperationException : Exception
+    public class TypeException : Exception
     {
-        public OperationException() { }
-    }
-
-    public class IdentifierException : Exception
-    {
-        public IdentifierException() { }
+        public TypeException() { }
     }
 }
