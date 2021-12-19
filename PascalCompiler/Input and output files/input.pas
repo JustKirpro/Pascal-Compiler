@@ -1,22 +1,21 @@
 program Hello;
 var
-    integer : integer; {Создаст переменную неизвестного типа}
-    x : integer; {Название типа уже переопределенно на название переменной}
-    b, c: real;
-    d, b :string; {Повторное описание переменной b}
+    a : integer;
+    b : real;
+
+    while a > 0 do
+        a := a - 1;
+
+    if a = 0 them
+        a : 1000;
+
 begin
-    integer  := 'fd' + 5; {Ошибка в выражении}
-    b := a / 3 + (a + 12) MOD 7; {Неописанная переменная}
-    c := 'fdfds'; {Ожидался тип real}
+    a := 100;
+    b := 12.3;
 
-    if a  + (5 + a) then {Ожидалось логическое значение}
-        b := 323232.325
-    else
-        a:= 45;
+    if a > 0 then
+    begin
+        a := a mod 100;
+        b := b * a
 
-    while (a > 0) AND (a * 12 < 100) do
-        begin
-            b := b * a;
-            a := a - 1;
-        End
 end.

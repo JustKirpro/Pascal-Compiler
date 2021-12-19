@@ -59,6 +59,7 @@ namespace PascalCompiler
                 AddError(25, errorPosition);
         }
 
+        //
         private void SkipTokensTo(List<Operation> operations, bool alsoSkipToIdentifier = false)
         {
             while (currentToken != null && currentToken.Type != TokenType.Operation)
@@ -256,11 +257,11 @@ namespace PascalCompiler
             {
                 Operation currentOperator = (currentToken as OperationToken).Operation;
 
-                if (currentOperator == Operation.End || currentOperator == Operation.Point)
+                if (currentOperator is Operation.End or Operation.Point)
                 {
                     return;
                 }
-                if (currentOperator == Operation.Begin)
+                else if (currentOperator == Operation.Begin)
                 {
                     CompoundOperator();
                 }
@@ -331,6 +332,7 @@ namespace PascalCompiler
                 if (exception is OperatorException or TypeException or OperationException)
                     HandleExpressionException(exception);
 
+                GetNextToken();
                 SkipTokensTo(NextTokens.OperatorEnd);
             }
         }
@@ -355,7 +357,8 @@ namespace PascalCompiler
                 if (exception is OperatorException or TypeException or OperationException)
                     HandleExpressionException(exception);
 
-                SkipTokensTo(NextTokens.OperatorStart);
+                GetNextToken();
+                SkipTokensTo(NextTokens.OperatorStart, true);
             }
 
             Operator();
@@ -387,7 +390,8 @@ namespace PascalCompiler
                 if (exception is OperatorException or TypeException or OperationException)
                     HandleExpressionException(exception);
 
-                SkipTokensTo(NextTokens.OperatorStart);
+                GetNextToken();
+                SkipTokensTo(NextTokens.OperatorStart, true);
             }
 
             Operator();
@@ -459,6 +463,9 @@ namespace PascalCompiler
                 if (Types.AreTypesDerived(leftPartType, rightPartType))
                 {
                     leftPartType = Types.DeriveTypes(leftPartType, rightPartType);
+
+                    if (leftPartType.ValueType == ValueType.Integer && operation == Operation.Slash)
+                        leftPartType = Types.GetType("REAL");
 
                     if (!leftPartType.IsOperationSupported(operation))
                         throw new OperationException(operationStartPosition);
