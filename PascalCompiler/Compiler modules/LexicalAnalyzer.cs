@@ -9,10 +9,10 @@ namespace PascalCompiler
         private readonly IOModule IOModule;
         private char currentCharacter;
         private int startPosition;
-        
+
         public LexicalAnalyzer(string inputPath, string outputPath)
         {
-            IOModule = new(inputPath, outputPath);
+            IOModule = new IOModule(inputPath, outputPath);
             currentCharacter = ' ';
         }
 
@@ -50,7 +50,7 @@ namespace PascalCompiler
                 return ScanSingleCharacterOperator();
             }
             else if (currentCharacter == '(' || currentCharacter == '*' || currentCharacter == '<' || currentCharacter == '>' || currentCharacter == ':'
-                                             || currentCharacter == '.') 
+                                             || currentCharacter == '.')
             {
                 return ScanMultipleCharacterOperator();
             }
@@ -65,7 +65,7 @@ namespace PascalCompiler
         private Token ScanString()
         {
             bool wasErrorFound = false;
-            StringBuilder stringBuilder = new();
+            StringBuilder stringBuilder = new StringBuilder();
             currentCharacter = IOModule.ReadNextCharacter();
 
             while (currentCharacter != '\'' && currentCharacter != '\0')
@@ -90,7 +90,7 @@ namespace PascalCompiler
 
         private Token ScanNumber()
         {
-            StringBuilder stringBuilder = new();
+            StringBuilder stringBuilder = new StringBuilder();
 
             while (char.IsDigit(currentCharacter) || currentCharacter == '.')
             {
@@ -100,9 +100,9 @@ namespace PascalCompiler
 
             string token = stringBuilder.ToString();
 
-            if (token.Contains('.'))
+            if (token.Contains("."))
             {
-                if (double.TryParse(token, out double number) && !token.EndsWith('.'))
+                if (double.TryParse(token.Replace('.', ','), out double number) && !token.EndsWith("."))
                 {
                     return new ConstantToken(number, startPosition);
                 }
@@ -128,7 +128,7 @@ namespace PascalCompiler
 
         private Token ScanKeywordOrIdentifier()
         {
-            StringBuilder stringBuilder = new();
+            StringBuilder stringBuilder = new StringBuilder();
 
             while (char.IsLetter(currentCharacter) || char.IsDigit(currentCharacter) || currentCharacter == '_')
             {
@@ -153,7 +153,7 @@ namespace PascalCompiler
 
         private Token ScanSingleCharacterOperator()
         {
-            if (currentCharacter == '{') 
+            if (currentCharacter == '{')
                 return ScanLeftBrace();
             else if (currentCharacter == '}')
                 return ScanRightBrace();

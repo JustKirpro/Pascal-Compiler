@@ -4,7 +4,7 @@ namespace PascalCompiler
 {
     public static class ErrorMatcher
     {
-        private static readonly Dictionary<int, string> dictionary = new()
+        private static readonly Dictionary<int, string> dictionary = new Dictionary<int, string>()
         {
             // Лексические ошибки
             [1] = "Открытие незакрытого комментария",

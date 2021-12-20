@@ -7,7 +7,7 @@ namespace PascalCompiler
     {
         static void Main()
         {
-            Compiler compiler = new(Path.Combine(Environment.CurrentDirectory, "input.pas"), Path.Combine(Environment.CurrentDirectory, "output.txt"));
+            Compiler compiler = new Compiler(Path.Combine(Environment.CurrentDirectory, "input.pas"), Path.Combine(Environment.CurrentDirectory, "output.txt"));
             compiler.Start();
         }
     }

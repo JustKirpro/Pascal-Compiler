@@ -4,7 +4,7 @@ namespace PascalCompiler
 {
     public class Scope
     {
-        private readonly Dictionary<IdentifierToken, Type> variablesTable = new();
+        private readonly Dictionary<IdentifierToken, Type> variablesTable = new Dictionary<IdentifierToken, Type>();
 
         public Scope() { }
 

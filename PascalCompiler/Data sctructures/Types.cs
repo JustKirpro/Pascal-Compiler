@@ -4,7 +4,7 @@ namespace PascalCompiler
 {
     public static class Types
     {
-        private static readonly Dictionary<string, Type> typesTable = new()
+        private static readonly Dictionary<string, Type> typesTable = new Dictionary<string, Type>()
         {
             ["INTEGER"] = new IntegerType(),
             ["REAL"] = new RealType(),

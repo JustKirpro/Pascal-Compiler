@@ -4,7 +4,7 @@ namespace PascalCompiler
 {
     public static class OperationErrorMatcher
     {
-        private static readonly Dictionary<Operation, int> dictionary = new()
+        private static readonly Dictionary<Operation, int> dictionary = new Dictionary<Operation, int>()
         {
             [Operation.Program] = 8,
             [Operation.Begin] = 9,

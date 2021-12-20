@@ -9,7 +9,7 @@ namespace PascalCompiler
         private readonly string outputPath;
         private int rowNumber;
         public int CharacterNumber { get; private set; }
-        private readonly List<Error> errors = new();
+        private readonly List<Error> errors = new List<Error>();
         private int totalErrors;
 
         public IOModule(string inputPath, string outputPath)
@@ -36,23 +36,25 @@ namespace PascalCompiler
 
         private void WriteLine()
         {
-            using StreamWriter writer = File.AppendText(outputPath);
-            writer.WriteLine($"  {rowNumber.ToString().PadLeft(2, '0')}   {lines[rowNumber - 1]}");
-
-            if (errors.Count > 0)
+            using (StreamWriter writer = File.AppendText(outputPath))
             {
-                foreach (Error error in errors)
+                writer.WriteLine($"  {rowNumber.ToString().PadLeft(2, '0')}   {lines[rowNumber - 1]}");
+
+                if (errors.Count > 0)
                 {
-                    totalErrors++;
-                    writer.WriteLine($"**{totalErrors.ToString().PadLeft(2, '0')}**{" ^ ".PadLeft(error.Position + 2)} Код ошибки: {error.Code}");
-                    writer.WriteLine($"****** {ErrorMatcher.GetErrorDescription(error.Code)}");
+                    foreach (Error error in errors)
+                    {
+                        totalErrors++;
+                        writer.WriteLine($"**{totalErrors.ToString().PadLeft(2, '0')}**{" ^ ".PadLeft(error.Position + 2)} Код ошибки: {error.Code}");
+                        writer.WriteLine($"****** {ErrorMatcher.GetErrorDescription(error.Code)}");
+                    }
+
+                    errors.Clear();
                 }
 
-                errors.Clear();
+                if (rowNumber == lines.Length)
+                    writer.WriteLine($"\nВсего ошибок - {totalErrors}");
             }
-
-            if (rowNumber == lines.Length)
-                writer.WriteLine($"\nВсего ошибок - {totalErrors}");
         }
     }
 }

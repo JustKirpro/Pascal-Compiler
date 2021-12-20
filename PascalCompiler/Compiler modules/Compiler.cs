@@ -1,17 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
+using System.Reflection.Emit;
 
 namespace PascalCompiler
 {
     public class Compiler
     {
         private readonly LexicalAnalyzer lexicalAnalyzer;
-        private readonly Scope scope = new();
+        private readonly Scope scope = new Scope();
         private Token currentToken;
 
         public Compiler(string inputPath, string outputPath)
         {
-            lexicalAnalyzer = new(inputPath, outputPath);
+            lexicalAnalyzer = new LexicalAnalyzer(inputPath, outputPath);
             GetNextToken();
         }
 
@@ -59,7 +61,6 @@ namespace PascalCompiler
                 AddError(25, errorPosition);
         }
 
-        //
         private void SkipTokensTo(List<Operation> operations, bool alsoSkipToIdentifier = false)
         {
             while (currentToken != null && currentToken.Type != TokenType.Operation)
@@ -136,7 +137,7 @@ namespace PascalCompiler
         // Описание однотипных переменных
         private void SameTypeVariables()
         {
-            List<IdentifierToken> variables = new();
+            List<IdentifierToken> variables = new List<IdentifierToken>();
 
             try
             {
@@ -217,7 +218,7 @@ namespace PascalCompiler
                 if (currentToken == null || (currentToken as OperationToken).Operation == Operation.Point)
                     return;
 
-                AcceptOperation(Operation.Begin);                
+                AcceptOperation(Operation.Begin);
             }
 
             Operator();
@@ -257,7 +258,7 @@ namespace PascalCompiler
             {
                 Operation currentOperator = (currentToken as OperationToken).Operation;
 
-                if (currentOperator is Operation.End or Operation.Point)
+                if (currentOperator is Operation.End || currentOperator is Operation.Point)
                 {
                     return;
                 }
@@ -329,7 +330,7 @@ namespace PascalCompiler
             }
             catch (Exception exception)
             {
-                if (exception is OperatorException or TypeException or OperationException)
+                if (exception is OperatorException || exception is TypeException || exception is OperationException)
                     HandleExpressionException(exception);
 
                 GetNextToken();
@@ -354,7 +355,7 @@ namespace PascalCompiler
             }
             catch (Exception exception)
             {
-                if (exception is OperatorException or TypeException or OperationException)
+                if (exception is OperatorException || exception is TypeException || exception is OperationException)
                     HandleExpressionException(exception);
 
                 GetNextToken();
@@ -387,7 +388,7 @@ namespace PascalCompiler
             }
             catch (Exception exception)
             {
-                if (exception is OperatorException or TypeException or OperationException)
+                if (exception is OperatorException || exception is TypeException || exception is  OperationException)
                     HandleExpressionException(exception);
 
                 GetNextToken();

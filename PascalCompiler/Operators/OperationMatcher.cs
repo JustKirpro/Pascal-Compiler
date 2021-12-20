@@ -4,7 +4,7 @@ namespace PascalCompiler
 {
     public static class OperationMatcher
     {
-        private static readonly Dictionary<string, Operation> dictionary = new()
+        private static readonly Dictionary<string, Operation> dictionary = new Dictionary<string, Operation>()
         {
             ["IF"] = Operation.If,
             ["DO"] = Operation.Do,
