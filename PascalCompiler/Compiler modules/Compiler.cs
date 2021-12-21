@@ -479,7 +479,25 @@ namespace PascalCompiler
 
         private Type SimpleExpression()
         {
+            bool isNegativeSign = false;
+
+            if (currentToken != null && currentToken.Type == TokenType.Operation)
+            {
+                Operation operation = (currentToken as OperationToken).Operation;
+
+                if (operation == Operation.Minus)
+                    isNegativeSign = true;
+
+                GetNextToken();
+            }
+
             Type leftPartType = Term();
+
+            if (isNegativeSign)
+            {
+                ILGenerator.Emit(OpCodes.Ldc_I4, -1);
+                EmitOperation(Operation.Asterisk);
+            }
 
             while (IsAdditiveOperation())
             {
