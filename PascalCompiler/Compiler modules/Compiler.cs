@@ -485,10 +485,13 @@ namespace PascalCompiler
             {
                 Operation operation = (currentToken as OperationToken).Operation;
 
-                if (operation == Operation.Minus)
-                    isNegativeSign = true;
+                if (operation == Operation.Minus || operation == Operation.Plus)
+                {
+                    if (operation == Operation.Minus)
+                        isNegativeSign = true;
 
-                GetNextToken();
+                    GetNextToken();
+                }
             }
 
             Type leftPartType = Term();

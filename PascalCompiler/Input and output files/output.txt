@@ -1,25 +1,21 @@
   01   program Hello;
-  02   var 
+  02   var
   03       a : integer;
-  04       b : real;
-  05       c : real;
-  06   begin
-  07       a := 10;
-  08       b := 20.4;
-  09       c := b + a;
-  10       writeln(c);
-  11   
-  12       if c > 30 then
-  13           writeln('Greater than 30')
-  14       else
-  15           writeln('Not greater than 30');
-  16   
-  17       while a > 0 do
-  18       begin
-  19           writeln(a);
-  20           a := a - 1
-  21       end
-  22   
-  23   end.
+  04   begin
+  05       a := 100 mod 12 + 9 div 4; {a = 6}
+  06   
+  07       while a >= 0 do
+  08       begin
+  09           writeln(a);
+  10   
+  11           if a mod 2 = 0 then
+  12               writeln('This number is even')
+  13           else
+  14               writeln('And this is an odd one');
+  15   
+  16           a := a - 1;
+  17       end;
+  18   
+  19   end.
 
 Всего ошибок - 0
