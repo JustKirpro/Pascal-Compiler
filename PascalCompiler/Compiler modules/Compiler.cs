@@ -7,12 +7,14 @@ namespace PascalCompiler
 {
     public class Compiler
     {
+        private readonly ILGenerator ILGenerator;
         private readonly LexicalAnalyzer lexicalAnalyzer;
         private readonly Scope scope = new Scope();
         private Token currentToken;
 
-        public Compiler(string inputPath, string outputPath)
+        public Compiler(string inputPath, string outputPath, ILGenerator ILGenerator)
         {
+            this.ILGenerator = ILGenerator;
             lexicalAnalyzer = new LexicalAnalyzer(inputPath, outputPath);
             GetNextToken();
         }
@@ -88,7 +90,6 @@ namespace PascalCompiler
             }
         }
 
-        // Программа
         private void Program()
         {
             try
@@ -114,14 +115,12 @@ namespace PascalCompiler
             }
         }
 
-        // Блок
         private void Block()
         {
             VariablesPart();
             OperatorsPart();
         }
 
-        // Раздел переменных
         private void VariablesPart()
         {
             if (currentToken != null && currentToken.Type == TokenType.Operation && (currentToken as OperationToken).Operation == Operation.Var)
@@ -134,7 +133,6 @@ namespace PascalCompiler
             }
         }
 
-        // Описание однотипных переменных
         private void SameTypeVariables()
         {
             List<IdentifierToken> variables = new List<IdentifierToken>();
@@ -204,7 +202,6 @@ namespace PascalCompiler
             GetNextToken();
         }
 
-        // Раздел операторов
         private void OperatorsPart()
         {
             try
@@ -239,7 +236,6 @@ namespace PascalCompiler
             }
         }
 
-        // Оператор
         private void Operator()
         {
             if (currentToken == null)
@@ -282,7 +278,6 @@ namespace PascalCompiler
             }
         }
 
-        // Составной оператор
         private void CompoundOperator()
         {
             AcceptOperation(Operation.Begin);
@@ -298,7 +293,6 @@ namespace PascalCompiler
             AcceptOperation(Operation.End);
         }
 
-        // Оператор присваивания
         private void AssignmentOperator()
         {
             IdentifierToken variable = currentToken as IdentifierToken;
@@ -338,7 +332,6 @@ namespace PascalCompiler
             }
         }
 
-        // Условный оператор
         private void IfOperator()
         {
             AcceptOperation(Operation.If);
@@ -371,7 +364,6 @@ namespace PascalCompiler
             }
         }
 
-        // Цикл с предусловием
         private void WhileOperator()
         {
             AcceptOperation(Operation.While);
@@ -398,7 +390,6 @@ namespace PascalCompiler
             Operator();
         }
 
-        // Выражение
         private Type Expression()
         {
             Type leftPartType = SimpleExpression();
@@ -419,7 +410,6 @@ namespace PascalCompiler
             return leftPartType;
         }
 
-        // Простое выражение
         private Type SimpleExpression()
         {
             Type leftPartType = Term();
@@ -448,7 +438,6 @@ namespace PascalCompiler
             return leftPartType;
         }
 
-        // Слагаемое
         private Type Term()
         {
             Type leftPartType = Factor();
@@ -480,7 +469,6 @@ namespace PascalCompiler
             return leftPartType;
         }
 
-        // Множитель
         private Type Factor()
         {
             Type factorType;
@@ -515,13 +503,10 @@ namespace PascalCompiler
             return factorType;
         }
 
-        // Аддитивная операция
         private bool IsAdditiveOperation() => IsOperation(Operations.AdditiveOperatons);
 
-        // Мультипликативная операция
         private bool IsMultiplicativeOperation() => IsOperation(Operations.MultiplicativeOperations);
 
-        // Операция отношения
         private bool IsLogicalOperation() => IsOperation(Operations.LogicalOperations);
 
         private bool IsOperation(List<Operation> operations)

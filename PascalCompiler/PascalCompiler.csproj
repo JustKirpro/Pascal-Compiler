@@ -51,9 +51,9 @@
     <Compile Include="Errors and exceptions\OperationErrorMatcher.cs" />
     <Compile Include="Compiler modules\IOModule.cs" />
     <Compile Include="Compiler modules\LexicalAnalyzer.cs" />
-    <Compile Include="Operators\OperationMatcher.cs" />
-    <Compile Include="Operators\Operation.cs" />
-    <Compile Include="Operators\Lists of operators.cs" />
+    <Compile Include="Operations\OperationMatcher.cs" />
+    <Compile Include="Operations\Operation.cs" />
+    <Compile Include="Operations\Lists of operators.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Data sctructures\Scope.cs" />
