@@ -24,7 +24,7 @@ namespace PascalCompiler
             return false;
         }
 
-        public int GetVariableIndex(IdentifierToken variable) //
+        public int GetVariableIndex(IdentifierToken variable)
         {
             int index = -1;
 

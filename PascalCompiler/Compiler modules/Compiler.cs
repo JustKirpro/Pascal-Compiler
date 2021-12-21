@@ -7,14 +7,14 @@ namespace PascalCompiler
 {
     public class Compiler
     {
-        private readonly ILGenerator ILGenerator; //
+        private readonly ILGenerator ILGenerator;
         private readonly LexicalAnalyzer lexicalAnalyzer;
         private readonly Scope scope = new Scope();
         private Token currentToken;
 
         public Compiler(string inputPath, string outputPath, ILGenerator ILGenerator)
         {
-            this.ILGenerator = ILGenerator; //
+            this.ILGenerator = ILGenerator;
             lexicalAnalyzer = new LexicalAnalyzer(inputPath, outputPath);
             GetNextToken();
         }
@@ -51,7 +51,7 @@ namespace PascalCompiler
 
         private void AddError(int code) => lexicalAnalyzer.AddError(code);
 
-        private void HandleExpressionException(Exception exception)
+        private void HandleExpressionException(Exception exception)       
         {
             int errorPosition = (exception as ExpressionException).ErrorPostion;
 
@@ -198,13 +198,13 @@ namespace PascalCompiler
                 else
                     scope.AddVariable(variable, type);
 
-                DeclareVariable(type); //
+                DeclareVariable(type);
             }
 
             GetNextToken();
         }
 
-        private void DeclareVariable(IdentifierToken type) // 
+        private void DeclareVariable(IdentifierToken type)
         {
             string typeName = type.Identifier.ToUpper();
 
@@ -250,7 +250,7 @@ namespace PascalCompiler
             }
         }
 
-        private void Operator() //
+        private void Operator()
         {
             if (currentToken == null)
                 return;
@@ -295,11 +295,14 @@ namespace PascalCompiler
             }
         }
 
-        private void WriteLn() // 
+        private void WriteLn()
         {
             AcceptIdentifier();
+            AcceptOperation(Operation.LeftParenthesis);
 
             Type expressionType = Expression();
+
+            AcceptOperation(Operation.RightParenthesis);
 
             MethodInfo writeLn;
 
@@ -315,7 +318,7 @@ namespace PascalCompiler
             ILGenerator.Emit(OpCodes.Call, writeLn);
         }
 
-        private void AssignmentOperator() //
+        private void AssignmentOperator()
         {
             IdentifierToken variable = currentToken as IdentifierToken;
 
@@ -371,7 +374,7 @@ namespace PascalCompiler
             AcceptOperation(Operation.End);
         }
 
-        private void IfOperator() //
+        private void IfOperator()
         {
             AcceptOperation(Operation.If);
             int expressionStartPosition = currentToken.StartPosition;
@@ -412,7 +415,7 @@ namespace PascalCompiler
             ILGenerator.MarkLabel(continueLabel);
         }
 
-        private void WhileOperator() //
+        private void WhileOperator()
         {
             AcceptOperation(Operation.While);
             int expressionStartPosition = currentToken.StartPosition;
@@ -448,7 +451,7 @@ namespace PascalCompiler
             ILGenerator.MarkLabel(falseLabel);
         }
 
-        private Type Expression() //
+        private Type Expression()
         {
             Type leftPartType = SimpleExpression();
 
@@ -474,7 +477,7 @@ namespace PascalCompiler
             return leftPartType;
         }
 
-        private Type SimpleExpression() //
+        private Type SimpleExpression()
         {
             Type leftPartType = Term();
 
@@ -507,7 +510,7 @@ namespace PascalCompiler
             return leftPartType;
         }
 
-        private Type Term() //
+        private Type Term()
         {
             Type leftPartType = Factor();
 
@@ -590,7 +593,7 @@ namespace PascalCompiler
             return operations.Contains(currentTokenOperation);
         }
 
-        private Type GetVariableType(bool alsoLoadVariable = true) //
+        private Type GetVariableType(bool alsoLoadVariable = true)
         {
             IdentifierToken variable = currentToken as IdentifierToken;
 
@@ -606,7 +609,7 @@ namespace PascalCompiler
             return scope.GetVariableType(variable);
         }
 
-        private Type GetConstantType() //
+        private Type GetConstantType()
         {
             Variant variant = (currentToken as ConstantToken).Variant;
 
@@ -627,7 +630,7 @@ namespace PascalCompiler
             }
         }
 
-        private void EmitOperation(Operation operation) //
+        private void EmitOperation(Operation operation)
         {
             switch (operation)
             {
@@ -678,10 +681,9 @@ namespace PascalCompiler
                     ILGenerator.Emit(OpCodes.Ceq);
                     break;
             }
-
         }
 
-        private void ConcatStrings() //
+        private void ConcatStrings()
         {
             MethodInfo concat = typeof(string).GetMethod("Concat", new System.Type[] { typeof(string), typeof(string) });
             ILGenerator.Emit(OpCodes.Call, concat);
