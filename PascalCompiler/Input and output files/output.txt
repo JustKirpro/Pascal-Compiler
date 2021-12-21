@@ -2,19 +2,24 @@
   02   var 
   03       a : integer;
   04       b : real;
-  05       c : string;
+  05       c : real;
   06   begin
   07       a := 10;
-  08   
-  09       writeln(a + 10);
-  10   
-  11       b := 43.4;
-  12   
-  13       writeln(b / 10);
-  14   
-  15       c := 'Hello ';
+  08       b := 20.4;
+  09       c := b + a;
+  10       writeln(c);
+  11   
+  12       if c > 30 then
+  13           writeln('Greater than 30')
+  14       else
+  15           writeln('Not greater than 30');
   16   
-  17       writeln(c + 'world!')
-  18   end.
+  17       while a > 0 do
+  18       begin
+  19           writeln(a);
+  20           a := a - 1
+  21       end
+  22   
+  23   end.
 
 Всего ошибок - 0

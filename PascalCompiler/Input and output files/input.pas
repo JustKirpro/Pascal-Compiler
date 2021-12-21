@@ -2,17 +2,22 @@ program Hello;
 var 
     a : integer;
     b : real;
-    c : string;
+    c : real;
 begin
     a := 10;
+    b := 20.4;
+    c := b + a;
+    writeln(c);
 
-    writeln(a + 10);
+    if c > 30 then
+        writeln('Greater than 30')
+    else
+        writeln('Not greater than 30');
 
-    b := 43.4;
+    while a > 0 do
+    begin
+        writeln(a);
+        a := a - 1
+    end
 
-    writeln(b / 10);
-
-    c := 'Hello ';
-
-    writeln(c + 'world!')
 end.

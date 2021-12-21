@@ -371,10 +371,13 @@ namespace PascalCompiler
             AcceptOperation(Operation.End);
         }
 
-        private void IfOperator()
+        private void IfOperator() //
         {
             AcceptOperation(Operation.If);
             int expressionStartPosition = currentToken.StartPosition;
+
+            Label falseLabel = ILGenerator.DefineLabel();
+            Label continueLabel = ILGenerator.DefineLabel();
 
             try
             {
@@ -394,23 +397,36 @@ namespace PascalCompiler
                 SkipTokensTo(NextTokens.OperatorStart, true);
             }
 
+            ILGenerator.Emit(OpCodes.Brfalse_S, falseLabel);
             Operator();
+            ILGenerator.Emit(OpCodes.Br_S, continueLabel);
+
+            ILGenerator.MarkLabel(falseLabel);
 
             if (currentToken != null && currentToken.Type == TokenType.Operation && (currentToken as OperationToken).Operation == Operation.Else)
             {
                 AcceptOperation(Operation.Else);
                 Operator();
             }
+
+            ILGenerator.MarkLabel(continueLabel);
         }
 
-        private void WhileOperator()
+        private void WhileOperator() //
         {
             AcceptOperation(Operation.While);
             int expressionStartPosition = currentToken.StartPosition;
 
+            Label falseLabel = ILGenerator.DefineLabel();
+            Label continueLabel = ILGenerator.DefineLabel();
+
+            ILGenerator.MarkLabel(continueLabel);
+
             try
             {
                 Type expressionType = Expression();
+
+                ILGenerator.Emit(OpCodes.Brfalse_S, falseLabel);
 
                 if (expressionType != Types.GetType("BOOLEAN"))
                     AddError(29, expressionStartPosition);
@@ -419,7 +435,7 @@ namespace PascalCompiler
             }
             catch (Exception exception)
             {
-                if (exception is OperatorException || exception is TypeException || exception is  OperationException)
+                if (exception is OperatorException || exception is TypeException || exception is OperationException)
                     HandleExpressionException(exception);
 
                 GetNextToken();
@@ -427,6 +443,9 @@ namespace PascalCompiler
             }
 
             Operator();
+
+            ILGenerator.Emit(OpCodes.Br_S, continueLabel);
+            ILGenerator.MarkLabel(falseLabel);
         }
 
         private Type Expression() //
