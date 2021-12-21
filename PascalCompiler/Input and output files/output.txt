@@ -1,27 +1,20 @@
   01   program Hello;
-  02   var
+  02   var 
   03       a : integer;
   04       b : real;
-  05   
-  06       while a > 0 do
-**01**     ^  Код ошибки: 9
-****** Ожидалось ключевое слово BEGIN
-  07           a := a - 1;
+  05       c : string;
+  06   begin
+  07       a := 10;
   08   
-  09       if a = 0 them
-  10           a : 1000;
-  11   
-  12   begin
-  13       a := 100;
-  14       b := 12.3;
-  15   
-  16       if a > 0 then
-  17       begin
-  18           a := a mod 100;
-  19           b := b * a
-  20   
-  21   end.
-**02**    ^  Код ошибки: 10
-****** Ожидалось ключевое слово END
+  09       writeln(a + 10);
+  10   
+  11       b := 43.4;
+  12   
+  13       writeln(b / 10);
+  14   
+  15       c := 'Hello ';
+  16   
+  17       writeln(c + 'world!')
+  18   end.
 
-Всего ошибок - 2
+Всего ошибок - 0

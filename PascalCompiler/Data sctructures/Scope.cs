@@ -24,6 +24,21 @@ namespace PascalCompiler
             return false;
         }
 
+        public int GetVariableIndex(IdentifierToken variable) //
+        {
+            int index = -1;
+
+            foreach (IdentifierToken identifierToken in variablesTable.Keys)
+            {
+                index++;
+
+                if (variable.Identifier == identifierToken.Identifier)
+                    break;
+            }
+
+            return index;
+        }
+
         public void AddVariable(IdentifierToken variable, IdentifierToken type)
         {
             if (IsVariableDescribed(variable))

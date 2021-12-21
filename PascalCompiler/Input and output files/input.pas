@@ -1,21 +1,18 @@
 program Hello;
-var
+var 
     a : integer;
     b : real;
-
-    while a > 0 do
-        a := a - 1;
-
-    if a = 0 them
-        a : 1000;
-
+    c : string;
 begin
-    a := 100;
-    b := 12.3;
+    a := 10;
 
-    if a > 0 then
-    begin
-        a := a mod 100;
-        b := b * a
+    writeln(a + 10);
 
+    b := 43.4;
+
+    writeln(b / 10);
+
+    c := 'Hello ';
+
+    writeln(c + 'world!')
 end.

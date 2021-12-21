@@ -7,14 +7,14 @@ namespace PascalCompiler
 {
     public class Compiler
     {
-        private readonly ILGenerator ILGenerator;
+        private readonly ILGenerator ILGenerator; //
         private readonly LexicalAnalyzer lexicalAnalyzer;
         private readonly Scope scope = new Scope();
         private Token currentToken;
 
         public Compiler(string inputPath, string outputPath, ILGenerator ILGenerator)
         {
-            this.ILGenerator = ILGenerator;
+            this.ILGenerator = ILGenerator; //
             lexicalAnalyzer = new LexicalAnalyzer(inputPath, outputPath);
             GetNextToken();
         }
@@ -197,9 +197,23 @@ namespace PascalCompiler
                     scope.AddVariable(variable);
                 else
                     scope.AddVariable(variable, type);
+
+                DeclareVariable(type); //
             }
 
             GetNextToken();
+        }
+
+        private void DeclareVariable(IdentifierToken type) // 
+        {
+            string typeName = type.Identifier.ToUpper();
+
+            if (typeName == "INTEGER")
+                ILGenerator.DeclareLocal(typeof(int));
+            else if (typeName == "REAL")
+                ILGenerator.DeclareLocal(typeof(double));
+            else
+                ILGenerator.DeclareLocal(typeof(string));
         }
 
         private void OperatorsPart()
@@ -236,7 +250,7 @@ namespace PascalCompiler
             }
         }
 
-        private void Operator()
+        private void Operator() //
         {
             if (currentToken == null)
                 return;
@@ -248,7 +262,10 @@ namespace PascalCompiler
             }
             else if (currentToken.Type == TokenType.Identifier)
             {
-                AssignmentOperator();
+                if ((currentToken as IdentifierToken).Identifier.ToUpper() == "WRITELN")
+                    WriteLn();
+                else
+                    AssignmentOperator();
             }
             else
             {
@@ -278,22 +295,27 @@ namespace PascalCompiler
             }
         }
 
-        private void CompoundOperator()
+        private void WriteLn() // 
         {
-            AcceptOperation(Operation.Begin);
+            AcceptIdentifier();
 
-            Operator();
+            Type expressionType = Expression();
 
-            while (currentToken != null && currentToken.Type == TokenType.Operation && (currentToken as OperationToken).Operation == Operation.Semicolon)
-            {
-                AcceptOperation(Operation.Semicolon);
-                Operator();
-            }
+            MethodInfo writeLn;
 
-            AcceptOperation(Operation.End);
+            if (expressionType.ValueType == ValueType.Integer)
+                writeLn = typeof(Console).GetMethod("WriteLine", new System.Type[] { typeof(int) });
+            else if (expressionType.ValueType == ValueType.Real)
+                writeLn = typeof(Console).GetMethod("WriteLine", new System.Type[] { typeof(double) });
+            else if (expressionType.ValueType == ValueType.String)
+                writeLn = typeof(Console).GetMethod("WriteLine", new System.Type[] { typeof(string) });
+            else
+                writeLn = typeof(Console).GetMethod("WriteLine", new System.Type[] { typeof(bool) });
+
+            ILGenerator.Emit(OpCodes.Call, writeLn);
         }
 
-        private void AssignmentOperator()
+        private void AssignmentOperator() //
         {
             IdentifierToken variable = currentToken as IdentifierToken;
 
@@ -303,7 +325,7 @@ namespace PascalCompiler
                 AddError(22);
             }
 
-            Type type = GetVariableType();
+            Type type = GetVariableType(false);
             GetNextToken();
 
             try
@@ -321,6 +343,8 @@ namespace PascalCompiler
                     else if (type.ValueType == ValueType.String)
                         AddError(28, expressionStartPosition);
                 }
+
+                ILGenerator.Emit(OpCodes.Stloc, scope.GetVariableIndex(variable));
             }
             catch (Exception exception)
             {
@@ -330,6 +354,21 @@ namespace PascalCompiler
                 GetNextToken();
                 SkipTokensTo(NextTokens.OperatorEnd);
             }
+        }
+
+        private void CompoundOperator()
+        {
+            AcceptOperation(Operation.Begin);
+
+            Operator();
+
+            while (currentToken != null && currentToken.Type == TokenType.Operation && (currentToken as OperationToken).Operation == Operation.Semicolon)
+            {
+                AcceptOperation(Operation.Semicolon);
+                Operator();
+            }
+
+            AcceptOperation(Operation.End);
         }
 
         private void IfOperator()
@@ -390,27 +429,33 @@ namespace PascalCompiler
             Operator();
         }
 
-        private Type Expression()
+        private Type Expression() //
         {
             Type leftPartType = SimpleExpression();
 
             if (IsLogicalOperation())
             {
+                Operation operation = (currentToken as OperationToken).Operation;
                 int operationStartPosition = currentToken.StartPosition;
                 GetNextToken();
 
                 Type rightPartType = SimpleExpression();
 
                 if (Types.AreTypesDerived(leftPartType, rightPartType))
+                {
+                    EmitOperation(operation);
                     return Types.GetType("BOOLEAN");
+                }
                 else
+                {
                     throw new TypeException(operationStartPosition);
+                }
             }
 
             return leftPartType;
         }
 
-        private Type SimpleExpression()
+        private Type SimpleExpression() //
         {
             Type leftPartType = Term();
 
@@ -428,6 +473,11 @@ namespace PascalCompiler
 
                     if (!leftPartType.IsOperationSupported(operation))
                         throw new OperationException(operationStartPosition);
+
+                    if (leftPartType.ValueType == ValueType.String)
+                        ConcatStrings();
+                    else
+                        EmitOperation(operation);
                 }
                 else
                 {
@@ -438,7 +488,7 @@ namespace PascalCompiler
             return leftPartType;
         }
 
-        private Type Term()
+        private Type Term() //
         {
             Type leftPartType = Factor();
 
@@ -459,6 +509,8 @@ namespace PascalCompiler
 
                     if (!leftPartType.IsOperationSupported(operation))
                         throw new OperationException(operationStartPosition);
+
+                    EmitOperation(operation);
                 }
                 else
                 {
@@ -519,7 +571,7 @@ namespace PascalCompiler
             return operations.Contains(currentTokenOperation);
         }
 
-        private Type GetVariableType()
+        private Type GetVariableType(bool alsoLoadVariable = true) //
         {
             IdentifierToken variable = currentToken as IdentifierToken;
 
@@ -529,19 +581,91 @@ namespace PascalCompiler
                 AddError(22);
             }
 
+            if (alsoLoadVariable)
+                ILGenerator.Emit(OpCodes.Ldloc, scope.GetVariableIndex(variable));
+
             return scope.GetVariableType(variable);
         }
 
-        private Type GetConstantType()
+        private Type GetConstantType() //
         {
-            ConstantToken constant = currentToken as ConstantToken;
+            Variant variant = (currentToken as ConstantToken).Variant;
 
-            if (constant.Variant.Type == VariantType.Integer)
+            if (variant.Type == VariantType.Integer)
+            {
+                ILGenerator.Emit(OpCodes.Ldc_I4, (variant as IntegerVariant).Value);
                 return Types.GetType("INTEGER");
-            else if (constant.Variant.Type == VariantType.Real)
+            }
+            else if (variant.Type == VariantType.Real)
+            {
+                ILGenerator.Emit(OpCodes.Ldc_R8, (variant as RealVariant).Value);
                 return Types.GetType("REAL");
+            }
             else
+            {
+                ILGenerator.Emit(OpCodes.Ldstr, (variant as StringVariant).Value);
                 return Types.GetType("STRING");
+            }
+        }
+
+        private void EmitOperation(Operation operation) //
+        {
+            switch (operation)
+            {
+                case Operation.Plus:
+                    ILGenerator.Emit(OpCodes.Add);
+                    break;
+                case Operation.Minus:
+                    ILGenerator.Emit(OpCodes.Sub);
+                    break;
+                case Operation.Or:
+                    ILGenerator.Emit(OpCodes.Or);
+                    break;
+                case Operation.Asterisk:
+                    ILGenerator.Emit(OpCodes.Mul);
+                    break;
+                case Operation.Slash:
+                case Operation.Div:
+                    ILGenerator.Emit(OpCodes.Div);
+                    break;
+                case Operation.Mod:
+                    ILGenerator.Emit(OpCodes.Rem);
+                    break;
+                case Operation.And:
+                    ILGenerator.Emit(OpCodes.And);
+                    break;
+                case Operation.Equals:
+                    ILGenerator.Emit(OpCodes.Ceq);
+                    break;
+                case Operation.NotEqual:
+                    ILGenerator.Emit(OpCodes.Ceq);
+                    ILGenerator.Emit(OpCodes.Ldc_I4_0);
+                    ILGenerator.Emit(OpCodes.Ceq);
+                    break;
+                case Operation.Less:
+                    ILGenerator.Emit(OpCodes.Clt);
+                    break;
+                case Operation.LessOrEqual:
+                    ILGenerator.Emit(OpCodes.Cgt);
+                    ILGenerator.Emit(OpCodes.Ldc_I4_0);
+                    ILGenerator.Emit(OpCodes.Ceq);
+                    break;
+                case Operation.Greater:
+                    ILGenerator.Emit(OpCodes.Cgt);
+                    break;
+                case Operation.GreaterOrEqual:
+                    ILGenerator.Emit(OpCodes.Clt);
+                    ILGenerator.Emit(OpCodes.Ldc_I4_0);
+                    ILGenerator.Emit(OpCodes.Ceq);
+                    break;
+            }
+
+        }
+
+        private void ConcatStrings() //
+        {
+            MethodInfo concat = typeof(string).GetMethod("Concat", new System.Type[] { typeof(string), typeof(string) });
+            ILGenerator.Emit(OpCodes.Call, concat);
         }
     }
 }
